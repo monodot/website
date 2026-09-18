@@ -4,26 +4,25 @@ layout: page
 subtitle: Inspired by Derek Sivers's Now page movement
 ---
 
-Hello! Here's what I'm up to right now. Last updated August 2022:
+Hello! Here's what I'm up to right now. Last updated September 2026:
 
-- I'm living in London, and working in consulting at Red Hat (although I'm leaving soon).
+- I'm living in London, working as a Staff Field Engineer at Grafana Labs, working on observability (Loki, OpenTelemetry) for our customers.
 
-- I'm still working on my main tech website, [Tutorial Works][tw], which I started in November 2020. I enjoy build up a library of tutorials and articles.
+- I'm writing on [my blog][blog], mostly about observability or indie hacking.
 
-- I've just launched a new website called [London Links][londonlinks], which is a curated list of useful websites for Londoners. Like a directory sites for essential living and London inspiration!
+- I'm building a little collection of iOS apps - [Basic Countdown Timer][countdown], [Nice Move][nicemove] and [WalkThere][walkthere] are all live right now! See the [Projects page][projects] for the complete list.
+
+- I'm also building [Apoll][apoll], a simple polling and audience Q&A app.
+
+- I've just started uploading to [YouTube][youtube] again after a five-year gap, mostly build-in-public stuff for the apps above.
 
 _Inspired by [Derek Sivers's Now page movement][now]_
 
-[londonlinks]: https://london-links.netlify.app/
 [apoll]: https://apoll.app
-[bc]: https://bandcamp.com/monodot
-[ca]: http://www.cheeseanalogue.com
-[camelsbs]: https://tomd.xyz/camelstepbystep
-[charles]: https://www.youtube.com/watch?v=K6fatndx8-A
-[doyouspin]: https://www.instagram.com/doyouspin/
-[flatbreads]: https://www.youtube.com/watch?v=vVx2oFFptG0
-[lockd]: https://en.wikipedia.org/wiki/COVID-19_pandemic_lockdowns
-[tomd]: https://tomd.xyz
+[blog]: https://monodot.co.uk
+[countdown]: https://apps.apple.com/gb/app/basic-countdown-timer/id6692619076
+[nicemove]: https://apps.apple.com/gb/app/nice-move-quick-workouts/id6748263452
 [now]: https://sive.rs/nowff
-[foam]: https://foambubble.github.io/
-[tw]: https://www.tutorialworks.com
+[projects]: /projects/
+[walkthere]: https://apps.apple.com/gb/app/walkthere/id6758466851
+[youtube]: https://www.youtube.com/@tomdxyz
