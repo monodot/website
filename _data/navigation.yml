@@ -3,10 +3,13 @@ main:
   - title: "Now"
     url: /now/
     weight: 1
+  - title: "Projects"
+    url: /projects/
+    weight: 2
   - title: "About"
     url: /about/
-    weight: 2
+    weight: 3
   - title: "Contact"
     url: /contact/
-    weight: 3
+    weight: 4
 
