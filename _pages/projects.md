@@ -46,3 +46,10 @@ Free mini tools that run entirely in your browser — nothing is sent to a serve
 This is a private, web-based pension calculator (in &pound;). It was built to answer the questions I wanted to know, like: how much money do I need to retire? What age can I retire at? What income could a pension pot give me, and how long might it last? Started out at as Claude Artifact (hence the quite nice design).
 
 <p><a role="button" href="/projects/pension-calculator/">Open the Pension Calculator →</a></p>
+
+### Live Curtain
+
+A full-screen countdown "curtain" for your Zoom calls. Built for people who run online meetings and workshops and want a nice screen to show your audience before you get started, or to count down an activity.
+
+<p><a role="button" href="https://livecurtain.com">Open Live Curtain →</a></p>
+

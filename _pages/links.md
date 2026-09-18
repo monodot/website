@@ -11,8 +11,6 @@ Here are some links, apps and resources that I like and use on a regular basis. 
 
 - [MVP CSS][mvpcss] - My blog theme is my own customisation of this very simple CSS stylesheet. MVP sets some nice, basic styling to all standard HTML elements, so you don't have to worry about remembering complicated classes and structures. Excellent for those of us who weren't blessed with design skills and it means that I can keep all these pages very lightweight and fast.
 
-## iOS apps
-
 ### Productivity
 
 - [1Writer][1writer-web] (iOS app) - This is such an **awesome note-taking app**, and I would be absolutely lost without it. Read and write plaintext files to your Dropbox, with smooth syncing functionality, Markdown support, dark mode and lots more.
