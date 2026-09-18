@@ -9,7 +9,7 @@ Here are some links, apps and resources that I like and use on a regular basis. 
 
 - [Jekyll][jek] - This is the static site generator (SSG) that I use to generate the content for this web site. I write my articles as text files in a Git repository, and use Jekyll to build all the HTML pages you see here.
 
-- [MVP CSS][mvpcss] - My blog theme is my own customisation of this very simple CSS stylesheet. MVP sets some nice, basic styling to all standard HTML elements, so you don't have to worry about remembering complicated classes and structures. Excellent for those of us who weren't blessed with design skills and it means that I can keep all these pages very lightweight and fast.
+- [Pico CSS][picocss] - My blog theme is my own customisation of Pico, a minimal CSS framework for semantic HTML. Pico styles all the standard HTML elements nicely, so you don't have to worry about remembering complicated classes and structures. Excellent for those of us who weren't blessed with design skills and it means that I can keep all these pages very lightweight and fast.
 
 ### Productivity
 
@@ -33,7 +33,7 @@ Blogs and sites from my friends, which you should go and visit!
 [jenny]: https://jennynelson.co.uk/
 [lucky]: https://www.luckytrip.co.uk/
 [mathsappeal]: http://itunes.apple.com/gb/podcast/maths-appeal/id1445702010
-[mvpcss]: https://andybrewer.github.io/mvp/
+[picocss]: https://picocss.com/
 [stack]: https://stackedit.io/
 [susan]: https://dothemathsthing.com/
 [tefliberia]: https://www.tefl-iberia.com
