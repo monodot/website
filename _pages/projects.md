@@ -29,6 +29,14 @@ An app for guiding you to a destination just by distance and bearing. This app i
 
 <p><a role="button" href="https://apps.apple.com/gb/app/walkthere/id6758466851">View on the App Store →</a></p>
 
+## Web Apps
+
+### Apoll
+
+A simple audience Q&A app. A boring app, done well. Free.
+
+<p><a role="button" href="https://apoll.app">Open Apoll →</a></p>
+
 ## Web Tools
 
 Free mini tools that run entirely in your browser — nothing is sent to a server.
