@@ -1,0 +1,18 @@
+{{ site.data.projects.intro | markdownify }}
+{%- assign last_section = "" -%}
+{%- for p in site.data.projects.projects -%}
+{%- if p.section and p.section != last_section -%}
+<h2>{{ p.section }}</h2>
+{%- assign last_section = p.section -%}
+{%- endif -%}
+<h3>{{ p.title }}</h3>
+{%- if p.description -%}
+{{ p.description | markdownify }}
+{%- endif -%}
+{%- if p.extra_url -%}
+<p><a href="{{ p.extra_url }}">{{ p.extra_label }}</a></p>
+{%- endif -%}
+{%- if p.url -%}
+<p><a role="button" href="{{ p.url }}">{{ p.link_text }} →</a></p>
+{%- endif -%}
+{%- endfor -%}

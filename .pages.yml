@@ -33,6 +33,27 @@ content:
       - { name: layout, label: Layout, type: string, options: { values: [ { value: page, label: page }] } }
       - { name: body, label: Body, type: rich-text }
       - { name: permalink, label: Permalink, type: string, description: "If not specified, the filename will be used as the permalink." }
+  - name: projects
+    label: Projects
+    type: file
+    path: _data/projects.yml
+    fields:
+      - name: intro
+        label: Introduction
+        type: text
+        description: Shown at the top of the Projects page.
+      - name: projects
+        label: Projects
+        type: object
+        list: true
+        fields:
+          - { name: title, label: Title, type: string, required: true }
+          - { name: section, label: Section, type: string, options: { values: [ { value: "iOS Apps", label: "iOS Apps" }, { value: "Web Apps", label: "Web Apps" }, { value: "Web Tools", label: "Web Tools" } ] }, description: "Projects with the same section are grouped under one heading, in the order they appear in this list." }
+          - { name: description, label: Description, type: text }
+          - { name: url, label: Link URL, type: string, description: "App Store URL, or the page URL for web tools (e.g. /projects/pension-calculator/)." }
+          - { name: link_text, label: Link text, type: string, description: "e.g. View on the App Store" }
+          - { name: extra_label, label: Extra link label, type: string, description: "Optional secondary link, e.g. a YouTube video." }
+          - { name: extra_url, label: Extra link URL, type: string }
   - name: config
     label: Site configuration
     path: _config.yml
