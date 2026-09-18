@@ -224,7 +224,7 @@ tr:last-child td{border-bottom:none}
     <h3>Inflation</h3>
     <p class="assumption-note">All figures are in today's money (real terms). Growth rates are after inflation.</p>
   </div>
-  <p class="assumption-note">This tool is for illustrative purposes only and does not constitute financial advice. Consult a regulated IFA before making pension decisions.</p>
+  <p class="assumption-note" style="margin-top:1rem">Your inputs are saved in the page address — bookmark or copy the link to keep your scenario, or send it to someone to share it. This tool is for illustrative purposes only and does not constitute financial advice. Consult a regulated IFA before making pension decisions.</p>
 </div>
 
 <script>
@@ -432,7 +432,52 @@ function renderSave(){
   document.getElementById('save-milestones').innerHTML=`<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem">${leg}</div>`;
 }
 
-renderMatrix();
+// ---- URL hash state: save/restore inputs so the page can be bookmarked or shared ----
+const FIELD_IDS=['state-pension','d-pot','d-age','d-withdraw','d-state','d-growth','c-pot','c-age','c-income','s-age','s-ret','s-pot','s-income','s-state','s-strategy','s-growth','s-contrib'];
+const SLIDER_FORMATS={'d-growth':v=>v+'%','s-growth':v=>v+'%','s-contrib':v=>'£'+v};
+
+function applyStateToUrl(){
+  const params=new URLSearchParams();
+  FIELD_IDS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&String(el.value)!==el.dataset.default)params.set(id,el.value);
+  });
+  const active=document.querySelector('.panel.active');
+  if(active)params.set('tab',active.id.replace('tab-',''));
+  const qs=params.toString();
+  history.replaceState(null,'',location.pathname+location.search+(qs?'#'+qs:''));
+}
+
+function restoreStateFromUrl(){
+  const hash=location.hash.slice(1);
+  if(!hash)return null;
+  const params=new URLSearchParams(hash);
+  FIELD_IDS.forEach(id=>{
+    if(!params.has(id))return;
+    const el=document.getElementById(id);
+    if(!el)return;
+    el.value=params.get(id);
+    if(SLIDER_FORMATS[id]){
+      const lbl=document.getElementById(id+'-val');
+      if(lbl)lbl.textContent=SLIDER_FORMATS[id](el.value);
+    }
+  });
+  return params.get('tab');
+}
+
+function initHashState(){
+  // Record defaults before anything is restored
+  FIELD_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.dataset.default=el.value;});
+  const tab=restoreStateFromUrl();
+  if(tab&&document.getElementById('tab-'+tab)&&tab!=='income'){showTab(tab);}else{renderMatrix();}
+  // Keep the URL in sync with any user input
+  FIELD_IDS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.addEventListener('input',applyStateToUrl);el.addEventListener('change',applyStateToUrl);}
+  });
+}
+
+initHashState();
 </script>
 </body>
 </html>
