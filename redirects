@@ -4,3 +4,4 @@ permalink: /_redirects
 ---
 
 /java-for-mvp/ https://tomd.xyz/java-for-mvp/
+/projects/retirement-planner/ /projects/pension-calculator/
