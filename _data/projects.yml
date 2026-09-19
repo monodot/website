@@ -56,3 +56,5 @@ projects:
       use the UI to edit the objects, then copy the YAML. "
     url: https://manikure.tomd.xyz
     link_text: Open Manikure
+    extra_label: GitHub
+    extra_url: https://github.com/monodot/manikure
