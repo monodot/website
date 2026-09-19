@@ -1,39 +1,58 @@
-intro: >-
-  Here are some things that I've made. Some are iOS apps that you can download from the App Store, while others are mini-tools that run entirely in your browser - no signup or tracking.
+intro: Here are some things that I've made. Some are iOS apps that you can
+  download from the App Store, while others are mini-tools that run entirely in
+  your browser - no signup or tracking.
 projects:
   - title: Basic Countdown Timer
     section: iOS Apps
-    description: >-
-      A timer that counts down to a set time. Useful when you need to leave the house on time, get the kids to school on time, or just do anything on time! [You can watch the story behind this app on my YouTube channel](https://www.youtube.com/watch?v=O9BvU7b_4zo)
+    description: A timer that counts down to a set time. Useful when you need to
+      leave the house on time, get the kids to school on time, or just do
+      anything on time! [You can watch the story behind this app on my YouTube
+      channel](https://www.youtube.com/watch?v=O9BvU7b_4zo)
     url: https://apps.apple.com/gb/app/basic-countdown-timer/id6692619076
     link_text: View on the App Store
   - title: Nice Move - Quick Workouts
     section: iOS Apps
-    description: >-
-      An app for you if you've got access to an outdoor gym or bars nearby and you just want to move around, in a quick workout, based around callisthenics or bodyweight exercises. Syncs a predefined workout to an Apple Watch so you can leave your phone at home.
+    description: An app for you if you've got access to an outdoor gym or bars
+      nearby and you just want to move around, in a quick workout, based around
+      callisthenics or bodyweight exercises. Syncs a predefined workout to an
+      Apple Watch so you can leave your phone at home.
     url: https://apps.apple.com/gb/app/nice-move-quick-workouts/id6748263452
     link_text: View on the App Store
   - title: WalkThere
     section: iOS Apps
-    description: >-
-      An app for guiding you to a destination just by distance and bearing. This app is for you if you like walking in cities, but you don't like painful turn-by-turn navigation. Just set your destination, and hit the button. Get guidance on your Apple Watch, and enjoy walking to your destination. Don't forget to look around you!
+    description: An app for guiding you to a destination just by distance and
+      bearing. This app is for you if you like walking in cities, but you don't
+      like painful turn-by-turn navigation. Just set your destination, and hit
+      the button. Get guidance on your Apple Watch, and enjoy walking to your
+      destination. Don't forget to look around you!
     url: https://apps.apple.com/gb/app/walkthere/id6758466851
     link_text: View on the App Store
   - title: Apoll
     section: Web Apps
-    description: >-
-      A simple audience Q&A app. A boring app, done well. Free.
+    description: A simple audience Q&A app. A boring app, done well. Free.
     url: https://apoll.app
     link_text: Open Apoll
   - title: Pension Calculator
     section: Web Tools
-    description: >-
-      This is a private, web-based pension calculator (in £). It was built to answer the questions I wanted to know, like: how much money do I need to retire? What age can I retire at? What income could a pension pot give me, and how long might it last? Started out at as Claude Artifact (hence the quite nice design).
+    description: "This is a private, web-based pension calculator (in £). It was
+      built to answer the questions I wanted to know, like: how much money do I
+      need to retire? What age can I retire at? What income could a pension pot
+      give me, and how long might it last? Started out at as Claude Artifact
+      (hence the quite nice design)."
     url: /projects/pension-calculator/
     link_text: Open the Pension Calculator
   - title: Live Curtain
     section: Web Tools
-    description: >-
-      A full-screen countdown "curtain" for your Zoom calls. Built for people who run online meetings and workshops and want a nice screen to show your audience before you get started, or to count down an activity.
+    description: A full-screen countdown "curtain" for your Zoom calls. Built for
+      people who run online meetings and workshops and want a nice screen to
+      show your audience before you get started, or to count down an activity.
     url: https://livecurtain.com
     link_text: Open Live Curtain
+  - title: Manikure
+    section: Web Tools
+    description: "Manifest editor for Kubernetes objects, in your browser. Ideal for
+      beginners who are just learning Kubernetes. You can create Services,
+      Deployments, and Ingresses, or pick from a couple of quickstart templates,
+      use the UI to edit the objects, then copy the YAML. "
+    url: https://manikure.tomd.xyz
+    link_text: Open Manikure
