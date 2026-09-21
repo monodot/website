@@ -53,106 +53,51 @@ tr:last-child td{border-bottom:none}
 .result-shortfall{background:#fcebeb;color:#791f1f}
 .result-neutral{background:#e6f1fb;color:#0c447c}
 .milestone-row-on{background:var(--color-background-secondary,#f5f5f3)}
+.btn{padding:6px 14px;font-size:13px;border:0.5px solid var(--color-border-tertiary,#ccc);border-radius:6px;background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);cursor:pointer}
+.btn:hover{background:var(--color-background-secondary,#f5f5f3)}
+.btn:disabled{opacity:.6;cursor:default}
+.budget-input{width:110px;text-align:right;padding:5px 8px;border:0.5px solid var(--color-border-tertiary,#ccc);border-radius:6px;font-size:13px;background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);font-variant-numeric:tabular-nums}
+.copy-row{display:flex;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
 
 <div class="tabs">
-  <button class="tab active" onclick="showTab('income')">Income matrix</button>
+  <button class="tab active" onclick="showTab('budget')">Budget</button>
+  <button class="tab" onclick="showTab('save')">How much to save</button>
   <button class="tab" onclick="showTab('drawdown')">Drawdown</button>
   <button class="tab" onclick="showTab('compare')">Annuity vs drawdown</button>
-  <button class="tab" onclick="showTab('save')">How much to save</button>
+  <button class="tab" onclick="showTab('income')">Income matrix</button>
   <button class="tab" onclick="showTab('assumptions')">Assumptions</button>
 </div>
 
-<!-- TAB 1: Income Matrix -->
-<div id="tab-income" class="panel active">
-  <h2>Annual income from different pot sizes</h2>
+<!-- TAB 1: Budget builder -->
+<div id="tab-budget" class="panel active">
+  <h2>What do you want to spend in retirement?</h2>
+  <p class="assumption-note" style="margin-bottom:1rem">Build up your desired annual spending category by category. Adjust any figure — subtotals, the grand total and the pot needed update automatically. Once you're happy with the total, copy it into the other tabs.</p>
   <div class="grid-2">
-    <div class="field">
-      <label>Include state pension from age 67?</label>
-      <select id="state-pension" onchange="renderMatrix()">
-        <option value="1">Yes — add ~£11,502/yr</option>
-        <option value="0">No</option>
+    <div class="field"><label>When copying, gross up for income tax?</label>
+      <select id="b-tax" onchange="renderBudget()">
+        <option value="0">No — copy spending as-is</option>
+        <option value="1">Yes — basic-rate payer (20%)</option>
       </select>
     </div>
   </div>
+  <div class="card" id="budget-table"></div>
+  <div id="budget-metrics"></div>
   <div class="card">
-    <div id="matrix-table"></div>
+    <h3>Use this total in other tabs</h3>
+    <div class="copy-row" id="budget-copy-row">
+      <button class="btn" onclick="copyBudgetTo('d-withdraw',renderDrawdown,this)">Drawdown → annual withdrawal</button>
+      <button class="btn" onclick="copyBudgetTo('c-income',renderCompare,this)">Annuity vs drawdown → income needed</button>
+      <button class="btn" onclick="copyBudgetTo('s-income',renderSave,this)">How much to save → target income</button>
+    </div>
+    <p class="assumption-note" id="budget-copy-note" style="margin-top:.75rem"></p>
   </div>
-  <p class="assumption-note">Income shown as sustainable annual withdrawal using the 4% drawdown rule. Annuity figures use estimated UK market rates (see Assumptions tab). State pension added from age 67 where applicable. All figures gross (before tax).</p>
+  <p class="assumption-note">Other tabs work in gross income, while this budget is what you actually want to spend (net of tax). Choose to gross up above if you want the copied figure to cover income tax — the estimate assumes a full personal allowance and basic-rate tax on everything above it.</p>
 </div>
 
-<!-- TAB 2: Drawdown Simulator -->
-<div id="tab-drawdown" class="panel">
-  <h2>Drawdown simulator</h2>
-  <div class="grid-2">
-    <div class="field"><label>Starting pot (£)</label><input type="number" id="d-pot" value="500000" step="10000" onchange="renderDrawdown()"></div>
-    <div class="field"><label>Retirement age</label><input type="number" id="d-age" value="65" min="55" max="75" onchange="renderDrawdown()"></div>
-  </div>
-  <div class="grid-2">
-    <div class="field"><label>Annual withdrawal (£)</label><input type="number" id="d-withdraw" value="30000" step="1000" onchange="renderDrawdown()"></div>
-    <div class="field"><label>Include state pension from 67?</label>
-      <select id="d-state" onchange="renderDrawdown()"><option value="1">Yes</option><option value="0">No</option></select>
-    </div>
-  </div>
-  <div class="field" style="margin-bottom:1.25rem">
-    <label>Investment growth in retirement (%/yr, real)</label>
-    <div class="slider-row">
-      <input type="range" id="d-growth" min="0" max="7" step="0.5" value="3.5" oninput="document.getElementById('d-growth-val').textContent=this.value+'%';renderDrawdown()">
-      <span class="slider-val" id="d-growth-val">3.5%</span>
-    </div>
-  </div>
-  <div class="metric-grid" id="drawdown-metrics"></div>
-  <div class="chart-wrap"><canvas id="drawdown-chart"></canvas></div>
-  <p class="assumption-note">Chart shows pot value each year until depleted or age 100. State pension reduces withdrawals from the pot from age 67.</p>
-</div>
-
-<!-- TAB 3: Annuity vs Drawdown -->
-<div id="tab-compare" class="panel">
-  <h2>Annuity vs drawdown</h2>
-  <div class="grid-3">
-    <div class="field"><label>Pot size (£)</label><input type="number" id="c-pot" value="500000" step="10000" onchange="renderCompare()"></div>
-    <div class="field"><label>Retirement age</label><input type="number" id="c-age" value="65" min="55" max="75" onchange="renderCompare()"></div>
-    <div class="field"><label>Annual income needed (£)</label><input type="number" id="c-income" value="30000" step="1000" onchange="renderCompare()"></div>
-  </div>
-  <div id="compare-metrics" class="metric-grid"></div>
-  <div class="compare-grid">
-    <div class="compare-card">
-      <h4>Drawdown</h4>
-      <div class="pros-cons">
-        <div class="pro">Pot stays invested, can grow</div>
-        <div class="pro">Flexible — change withdrawals</div>
-        <div class="pro">Unused pot passes to heirs</div>
-        <div class="pro">Can top up with part-time work</div>
-        <div class="con">Pot can run out if you live long</div>
-        <div class="con">Investment risk — pot can fall</div>
-        <div class="con">Requires active management</div>
-      </div>
-    </div>
-    <div class="compare-card">
-      <h4>Annuity</h4>
-      <div class="pros-cons">
-        <div class="pro">Guaranteed income for life</div>
-        <div class="pro">No investment risk</div>
-        <div class="pro">Simple — set and forget</div>
-        <div class="pro">Can include partner's pension</div>
-        <div class="con">No flexibility once purchased</div>
-        <div class="con">Nothing left for heirs</div>
-        <div class="con">Poor value if you die early</div>
-        <div class="con">Fixed income erodes with inflation</div>
-      </div>
-    </div>
-  </div>
-  <div style="display:flex;gap:16px;margin-bottom:4px;font-size:12px;color:var(--color-text-secondary)">
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#1d9e75;display:inline-block"></span>Total received — annuity</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#185fa5;display:inline-block"></span>Cumulative drawdown cost</span>
-  </div>
-  <div class="chart-wrap" style="height:240px"><canvas id="compare-chart"></canvas></div>
-  <p id="compare-note" class="assumption-note"></p>
-</div>
-
-<!-- TAB 4: How much to save -->
+<!-- TAB 2: How much to save -->
 <div id="tab-save" class="panel">
   <h2>How much do I need to save?</h2>
   <div class="grid-2">
@@ -198,7 +143,94 @@ tr:last-child td{border-bottom:none}
   <p class="assumption-note" style="margin-top:.75rem">All figures in today's money (real terms). Growth rate is after inflation. Tax relief on contributions not modelled explicitly — but contributing to a pension is effectively a ~25% boost for basic rate taxpayers (HMRC tops up your contribution).</p>
 </div>
 
-<!-- TAB 5: Assumptions -->
+<!-- TAB 3: Drawdown simulator -->
+<div id="tab-drawdown" class="panel">
+  <h2>Drawdown simulator</h2>
+  <div class="grid-2">
+    <div class="field"><label>Starting pot (£)</label><input type="number" id="d-pot" value="500000" step="10000" onchange="renderDrawdown()"></div>
+    <div class="field"><label>Retirement age</label><input type="number" id="d-age" value="65" min="55" max="75" onchange="renderDrawdown()"></div>
+  </div>
+  <div class="grid-2">
+    <div class="field"><label>Annual withdrawal (£)</label><input type="number" id="d-withdraw" value="30000" step="1000" onchange="renderDrawdown()"></div>
+    <div class="field"><label>Include state pension from 67?</label>
+      <select id="d-state" onchange="renderDrawdown()"><option value="1">Yes</option><option value="0">No</option></select>
+    </div>
+  </div>
+  <div class="field" style="margin-bottom:1.25rem">
+    <label>Investment growth in retirement (%/yr, real)</label>
+    <div class="slider-row">
+      <input type="range" id="d-growth" min="0" max="7" step="0.5" value="3.5" oninput="document.getElementById('d-growth-val').textContent=this.value+'%';renderDrawdown()">
+      <span class="slider-val" id="d-growth-val">3.5%</span>
+    </div>
+  </div>
+  <div class="metric-grid" id="drawdown-metrics"></div>
+  <div class="chart-wrap"><canvas id="drawdown-chart"></canvas></div>
+  <p class="assumption-note">Chart shows pot value each year until depleted or age 100. State pension reduces withdrawals from the pot from age 67.</p>
+</div>
+
+<!-- TAB 4: Annuity vs drawdown -->
+<div id="tab-compare" class="panel">
+  <h2>Annuity vs drawdown</h2>
+  <div class="grid-3">
+    <div class="field"><label>Pot size (£)</label><input type="number" id="c-pot" value="500000" step="10000" onchange="renderCompare()"></div>
+    <div class="field"><label>Retirement age</label><input type="number" id="c-age" value="65" min="55" max="75" onchange="renderCompare()"></div>
+    <div class="field"><label>Annual income needed (£)</label><input type="number" id="c-income" value="30000" step="1000" onchange="renderCompare()"></div>
+  </div>
+  <div id="compare-metrics" class="metric-grid"></div>
+  <div class="compare-grid">
+    <div class="compare-card">
+      <h4>Drawdown</h4>
+      <div class="pros-cons">
+        <div class="pro">Pot stays invested, can grow</div>
+        <div class="pro">Flexible — change withdrawals</div>
+        <div class="pro">Unused pot passes to heirs</div>
+        <div class="pro">Can top up with part-time work</div>
+        <div class="con">Pot can run out if you live long</div>
+        <div class="con">Investment risk — pot can fall</div>
+        <div class="con">Requires active management</div>
+      </div>
+    </div>
+    <div class="compare-card">
+      <h4>Annuity</h4>
+      <div class="pros-cons">
+        <div class="pro">Guaranteed income for life</div>
+        <div class="pro">No investment risk</div>
+        <div class="pro">Simple — set and forget</div>
+        <div class="pro">Can include partner's pension</div>
+        <div class="con">No flexibility once purchased</div>
+        <div class="con">Nothing left for heirs</div>
+        <div class="con">Poor value if you die early</div>
+        <div class="con">Fixed income erodes with inflation</div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:16px;margin-bottom:4px;font-size:12px;color:var(--color-text-secondary)">
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#1d9e75;display:inline-block"></span>Total received — annuity</span>
+    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#185fa5;display:inline-block"></span>Cumulative drawdown cost</span>
+  </div>
+  <div class="chart-wrap" style="height:240px"><canvas id="compare-chart"></canvas></div>
+  <p id="compare-note" class="assumption-note"></p>
+</div>
+
+<!-- TAB 5: Income matrix -->
+<div id="tab-income" class="panel">
+  <h2>Annual income from different pot sizes</h2>
+  <div class="grid-2">
+    <div class="field">
+      <label>Include state pension from age 67?</label>
+      <select id="state-pension" onchange="renderMatrix()">
+        <option value="1">Yes — add ~£11,502/yr</option>
+        <option value="0">No</option>
+      </select>
+    </div>
+  </div>
+  <div class="card">
+    <div id="matrix-table"></div>
+  </div>
+  <p class="assumption-note">Income shown as sustainable annual withdrawal using the 4% drawdown rule. Annuity figures use estimated UK market rates (see Assumptions tab). State pension added from age 67 where applicable. All figures gross (before tax).</p>
+</div>
+
+<!-- TAB 6: Assumptions -->
 <div id="tab-assumptions" class="panel">
   <h2>Assumptions & methodology</h2>
   <div class="card">
@@ -223,6 +255,9 @@ tr:last-child td{border-bottom:none}
     <hr class="section-sep">
     <h3>Inflation</h3>
     <p class="assumption-note">All figures are in today's money (real terms). Growth rates are after inflation.</p>
+    <hr class="section-sep">
+    <h3>Retirement budget (Budget tab)</h3>
+    <p class="assumption-note">Default amounts are typical annual figures for a retired household in the UK, in today's money — they are a starting point only; edit every line to match your plans. Items marked <strong>essential</strong> (housing, bills, groceries, transport, health) are the floor you can fall back to; everything else (holidays, leisure, eating out, gifts) is discretionary. The "pot needed" figure uses the 4% drawdown rule against your total budget.</p>
   </div>
   <p class="assumption-note" style="margin-top:1rem">Your inputs are saved in the page address — bookmark or copy the link to keep your scenario, or send it to someone to share it. This tool is for illustrative purposes only and does not constitute financial advice. Consult a regulated IFA before making pension decisions.</p>
 </div>
@@ -254,6 +289,7 @@ function showTab(name){
   if(name==='compare') renderCompare();
   if(name==='income') renderMatrix();
   if(name==='save') renderSave();
+  if(name==='budget') renderBudget();
 }
 
 function renderMatrix(){
@@ -432,8 +468,86 @@ function renderSave(){
   document.getElementById('save-milestones').innerHTML=`<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem">${leg}</div>`;
 }
 
+// ---- Budget tab ----
+const BUDGET_ITEMS=[
+  {id:'b-housing',cat:'Housing',label:'Home upkeep — repairs, insurance, service charge',val:2400,ess:true},
+  {id:'b-bills',cat:'Bills',label:'Energy, water, broadband, phone',val:3600,ess:true},
+  {id:'b-food-shop',cat:'Food & drink',label:'Groceries',val:4800,ess:true},
+  {id:'b-food-out',cat:'Food & drink',label:'Eating out & takeaway coffee',val:1200},
+  {id:'b-transport',cat:'Transport',label:'Car running costs & public transport',val:3000,ess:true},
+  {id:'b-holidays',cat:'Holidays',label:'Holidays & trips',val:3000},
+  {id:'b-leisure',cat:'Leisure',label:'Hobbies, sport, entertainment',val:2400},
+  {id:'b-family',cat:'Family & gifts',label:'Gifts & helping family',val:1200},
+  {id:'b-personal',cat:'Personal',label:'Clothing & personal care',val:1200,ess:true},
+  {id:'b-health',cat:'Health',label:'Dental, optician, prescriptions',val:600,ess:true},
+  {id:'b-insurance',cat:'Insurance & finance',label:'Life insurance, bank fees, subscriptions',val:600,ess:true},
+  {id:'b-other',cat:'Other',label:'Other / one-off spending',val:0}
+];
+const BUDGET_IDS=BUDGET_ITEMS.map(i=>i.id);
+
+function budgetValue(id,def){const el=document.getElementById(id);return el?parseFloat(el.value)||0:def;}
+function budgetTotal(){return BUDGET_ITEMS.reduce((s,it)=>s+budgetValue(it.id,it.val),0);}
+function grossUpForTax(net){
+  const PA=12570;
+  return net<=PA?net:PA+(net-PA)/0.8;
+}
+function copyBudgetTo(id,renderFn,btn){
+  const total=budgetTotal();
+  const copyVal=parseInt(document.getElementById('b-tax').value)?grossUpForTax(total):total;
+  const el=document.getElementById(id);
+  if(el){el.value=Math.round(copyVal/100)*100;if(renderFn)renderFn();}
+  applyStateToUrl();
+  const orig=btn.textContent;
+  btn.textContent='Copied ✓';btn.disabled=true;
+  setTimeout(()=>{btn.textContent=orig;btn.disabled=false;},1200);
+}
+
+function renderBudget(){
+  const taxMode=parseInt(document.getElementById('b-tax').value);
+  const catTotals={};
+  BUDGET_ITEMS.forEach(it=>{catTotals[it.cat]=(catTotals[it.cat]||0)+budgetValue(it.id,it.val);});
+
+  let html='<table><thead><tr><th>Category / item</th><th style="text-align:right">£ per year</th></tr></thead><tbody>';
+  let lastCat=null;
+  BUDGET_ITEMS.forEach(it=>{
+    if(it.cat!==lastCat){
+      lastCat=it.cat;
+      html+=`<tr><td colspan="2" style="padding:6px 10px 4px;font-size:12px;font-weight:500;color:var(--color-text-secondary)">${it.cat}<span style="float:right;font-size:12px;font-variant-numeric:tabular-nums">${fmt(catTotals[it.cat])}</span></td></tr>`;
+    }
+    html+=`<tr><td>${it.label}${it.ess?'<span class="badge badge-b">essential</span>':''}</td><td class="num"><input type="number" class="budget-input" id="${it.id}" value="${budgetValue(it.id,it.val)}" min="0" step="100" onchange="renderBudget()"></td></tr>`;
+  });
+  html+='</tbody></table>';
+  document.getElementById('budget-table').innerHTML=html;
+
+  const total=budgetTotal();
+  const ess=BUDGET_ITEMS.filter(i=>i.ess).reduce((s,it)=>s+budgetValue(it.id,it.val),0);
+  const disc=total-ess;
+  const potNeeded=total/DRAWDOWN_RATE;
+  const copyVal=taxMode?grossUpForTax(total):total;
+
+  let m='';
+  m+=`<div class="metric-grid" style="margin-bottom:1.25rem">
+    <div class="metric"><div class="metric-label">Total budget</div><div class="metric-val">${fmt(total)}/yr</div><div class="metric-sub">${fmt(Math.round(total/12))}/mo · ${fmt(Math.round(total/52))}/wk</div></div>
+    <div class="metric"><div class="metric-label">Essential floor</div><div class="metric-val">${fmt(ess)}/yr</div><div class="metric-sub">if money gets tight</div></div>
+    <div class="metric"><div class="metric-label">Discretionary</div><div class="metric-val">${fmt(disc)}/yr</div><div class="metric-sub">holidays, leisure, gifts</div></div>
+    <div class="metric"><div class="metric-label">Pot needed (4% rule)</div><div class="metric-val">${fmt(potNeeded)}</div><div class="metric-sub">on top of state pension</div></div>
+  </div>`;
+  document.getElementById('budget-metrics').innerHTML=m;
+
+  const note=document.getElementById('budget-copy-note');
+  if(note)note.textContent=taxMode
+    ?`The buttons above copy ${fmt(Math.round(copyVal))}/yr — your ${fmt(Math.round(total))} budget grossed up to cover basic-rate income tax.`
+    :`The buttons above copy ${fmt(Math.round(copyVal))}/yr.`;
+
+  // Keep URL state in sync (elements are re-created on each render)
+  BUDGET_IDS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.addEventListener('input',applyStateToUrl);el.addEventListener('change',applyStateToUrl);}
+  });
+}
+
 // ---- URL hash state: save/restore inputs so the page can be bookmarked or shared ----
-const FIELD_IDS=['state-pension','d-pot','d-age','d-withdraw','d-state','d-growth','c-pot','c-age','c-income','s-age','s-ret','s-pot','s-income','s-state','s-strategy','s-growth','s-contrib'];
+const FIELD_IDS=['state-pension','d-pot','d-age','d-withdraw','d-state','d-growth','c-pot','c-age','c-income','s-age','s-ret','s-pot','s-income','s-state','s-strategy','s-growth','s-contrib','b-tax',...BUDGET_IDS];
 const SLIDER_FORMATS={'d-growth':v=>v+'%','s-growth':v=>v+'%','s-contrib':v=>'£'+v};
 
 function applyStateToUrl(){
@@ -466,10 +580,12 @@ function restoreStateFromUrl(){
 }
 
 function initHashState(){
+  // Build the budget tab first so its inputs exist for default recording & state restore
+  renderBudget();
   // Record defaults before anything is restored
   FIELD_IDS.forEach(id=>{const el=document.getElementById(id);if(el)el.dataset.default=el.value;});
   const tab=restoreStateFromUrl();
-  if(tab&&document.getElementById('tab-'+tab)&&tab!=='income'){showTab(tab);}else{renderMatrix();}
+  if(tab&&document.getElementById('tab-'+tab)&&tab!=='budget'){showTab(tab);}else{renderBudget();}
   // Keep the URL in sync with any user input
   FIELD_IDS.forEach(id=>{
     const el=document.getElementById(id);
