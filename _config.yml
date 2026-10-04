@@ -12,6 +12,12 @@ show_excerpts: false # set to true to show excerpts on the homepage
 locale: en_GB
 permalink: /:title/
 
+collections:
+  # Notes = the microblog: short posts, links, things I'm reading.
+  notes:
+    output: true
+    permalink: /notes/:title/
+
 twitter_username:   monodot
 github_username:    monodot
 
@@ -38,6 +44,11 @@ defaults:
       type: "pages"
     values:
       permalink: /:basename/
+  - scope:
+      path: ""
+      type: "notes"
+    values:
+      layout: "note"
 
 # If you want to link only specific pages in your header, uncomment
 # this and add the path to the pages in order as they should show up
@@ -52,6 +63,13 @@ plugins:
   - jekyll-paginate
   - jekyll-sitemap ## Uncomment this line to silently generate a sitemaps.org compliant sitemap for your Jekyll site
   - jekyll-tidy
+
+# Notes get their own feed at /notes/feed.xml, separate from /feed.xml.
+# This is the only hook needed to syndicate them elsewhere later.
+feed:
+  collections:
+    notes:
+      path: "/notes/feed.xml"
 
 sass:
   sass_dir: _sass

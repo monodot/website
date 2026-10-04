@@ -14,6 +14,24 @@ layout: default
     </div>
 </section>
 
+{% if site.notes.size > 0 %}
+<section class="page-block recent-posts">
+  <h2>Recent notes</h2>
+
+  <ul>
+    {% assign recent_notes = site.notes | sort: 'date' | reverse %}
+    {% for note in recent_notes limit: 5 %}
+    <li>
+      <a href="{{ note.url | relative_url }}">{{ note.title | default: note.content | strip_html | truncate: 70 }}</a>
+      <small>{{ note.date | date: "%B %d, %Y" }}</small>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <p><a href="{{ '/notes/' | relative_url }}">All notes &rarr;</a></p>
+</section>
+{% endif %}
+
 <section class="page-block recent-posts">
     <h2>All posts</h2>
 

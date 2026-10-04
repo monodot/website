@@ -3,5 +3,8 @@ layout: none
 permalink: /_redirects
 ---
 
-/java-for-mvp/ https://tomd.xyz/java-for-mvp/
 /projects/retirement-planner/ /projects/pension-calculator/
+
+# "Just ship" was published as a post, then moved into the notes section
+/just-ship/ /notes/just-ship/ 301
+/just-ship /notes/just-ship/ 301

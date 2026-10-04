@@ -1,0 +1,36 @@
+---
+layout: default
+---
+
+<div class="notes-index">
+    <div class="prose">
+        <h1>{{ page.title }}</h1>
+        {{ content }}
+    </div>
+
+    <ol class="note-list">
+        {% assign notes = site.notes | sort: 'date' | reverse %}
+        {% for note in notes %}
+        <li>
+            <article class="note" itemtype="http://schema.org/CreativeWork">
+                <header>
+                    <p class="note-date">
+                        <a href="{{ note.url | relative_url }}" rel="bookmark" class="secondary">
+                            <time datetime="{{ note.date | date_to_xmlschema }}">{{ note.date | date: "%-d %B %Y" }}</time>
+                        </a>
+                    </p>
+                    {% if note.title %}
+                    <h2>{{ note.title | markdownify | remove: "<p>" | remove: "</p>" }}</h2>
+                    {% endif %}
+                </header>
+                {{ note.content }}
+                {% if note.link %}
+                <p class="note-link">
+                    <a href="{{ note.link }}">{{ note.link_text | default: note.link }}</a>
+                </p>
+                {% endif %}
+            </article>
+        </li>
+        {% endfor %}
+    </ol>
+</div>

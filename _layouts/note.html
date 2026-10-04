@@ -1,0 +1,24 @@
+---
+layout: default
+---
+
+<div class="prose">
+    <article class="note" itemtype="http://schema.org/CreativeWork">
+        <header>
+            <p class="note-date">
+                <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: "%-d %B %Y" }}</time>
+            </p>
+            {% if page.title %}
+            <h1>{{ page.title | markdownify | remove: "<p>" | remove: "</p>" }}</h1>
+            {% endif %}
+        </header>
+        {{ content }}
+        {% if page.link %}
+        <p class="note-link">
+            <a href="{{ page.link }}">{{ page.link_text | default: page.link }}</a>
+        </p>
+        {% endif %}
+    </article>
+
+    <p class="note-nav"><a href="{{ '/notes/' | relative_url }}">&larr; All notes</a></p>
+</div>
