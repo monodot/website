@@ -65,11 +65,11 @@ projects:
       Matches buy/sell transactions using the HMRC rules. All completely private."
     url: /projects/cgt-calculator/
     link_text: Open the CGT Calculator
-  - title: Salary Tax Calculator
+  - title: Income Tax Calculator
     section: Web Tools
     description: "A calculator for UK income tax, National Insurance and student
       loan repayments on a salary, for the 2026/27 tax year. Shows the effect of
       salary sacrifice and SIPP contributions, including the 60% trap above
       £100k. Built with Claude, and completely private."
-    url: /projects/salary-tax-calculator/
-    link_text: Open the Salary Tax Calculator
+    url: /projects/income-tax-calculator/
+    link_text: Open the Income Tax Calculator
