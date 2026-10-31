@@ -1,6 +1,6 @@
 ---
 layout: home
-title: Hello, this is Tom's blog.
+title: Hi, I'm Tom.
 permalink: "/"
 ---
 
