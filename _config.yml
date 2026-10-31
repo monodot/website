@@ -5,7 +5,7 @@ email: monodot@gmail.com
 url: "https://monodot.co.uk"
 baseurl: # the subpath of your site, e.g. "/blog"
 description: > # this means to ignore newlines until "show_excerpts:"
-  Tom's personal blog, sharing what I'm up to, opinions, and stuff I'm working on.
+  Tom Donohue's blog. Staff Field Engineer at Grafana Labs, writing about observability and building small, useful apps.
 avatar: /assets/img/me-avatar.jpg
 
 show_excerpts: false # set to true to show excerpts on the homepage
@@ -18,14 +18,15 @@ collections:
     output: true
     permalink: /notes/:title/
 
-twitter_username:   monodot
 github_username:    monodot
 
 social:
   type                   : # Person or Organization (defaults to Person)
   name                   : # If the user or organization name differs from the site's name
   links:
-    - https://twitter.com/monodot
+    - https://github.com/monodot
+    - https://uk.linkedin.com/in/tomint
+    - https://www.youtube.com/@tomdxyz
 
 include: ["_pages"]
 

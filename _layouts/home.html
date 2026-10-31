@@ -14,6 +14,23 @@ layout: default
     </div>
 </section>
 
+{% if site.data.projects.projects.size > 0 %}
+<section class="page-block recent-posts">
+  <h2>Things I've made</h2>
+
+  <ul>
+    {% for p in site.data.projects.projects limit: 4 %}
+    <li>
+      <a href="{{ p.url }}">{{ p.title }}</a>
+      <small>{{ p.section }}</small>
+    </li>
+    {% endfor %}
+  </ul>
+
+  <p><a href="{{ '/projects/' | relative_url }}">All projects &rarr;</a></p>
+</section>
+{% endif %}
+
 {% if site.notes.size > 0 %}
 <section class="page-block recent-posts">
   <h2>Recent notes</h2>
