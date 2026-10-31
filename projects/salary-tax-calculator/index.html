@@ -1,0 +1,392 @@
+<!doctype html>
+<!--
+  Salary Tax Calculator
+  Copyright (c) 2026 Tom Donohue
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Salary Tax Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}
+img{max-width:100%}
+[hidden]:not([hidden=until-found i]){display:none!important}
+</style>
+<style>
+/* Layout: single ledger column — inputs, headline figures, where the money goes, band-by-band workings, marginal rate curve, rules */
+:root{
+  --bg:#f3f5f3; --surface:#ffffff; --ink:#18211d; --muted:#5d6b64; --line:#d8dfdb;
+  --accent:#1d5e4b; --accent-soft:#e3efe9; --warn:#9a5b00; --warn-soft:#fbf0dc; --bad:#a3302a; --good:#1d6b3f;
+  --c-tax:#a3302a; --c-ni:#c9822b; --c-sl:#7a6aa8; --c-pen:#3d7fa3; --c-home:#1d5e4b;
+  --f-display:"Schibsted Grotesk",system-ui,sans-serif; --f-body:"Schibsted Grotesk",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1a211e; --ink:#e4ebe7; --muted:#97a69f; --line:#2d3833;
+  --accent:#6cc3a3; --accent-soft:#1f322b; --warn:#e7b25c; --warn-soft:#352a17; --bad:#ef8a80; --good:#7fd19d;
+  --c-tax:#e07a70; --c-ni:#e2a85a; --c-sl:#a99ad6; --c-pen:#6fb0d3; --c-home:#6cc3a3; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1a211e; --ink:#e4ebe7; --muted:#97a69f; --line:#2d3833;
+  --accent:#6cc3a3; --accent-soft:#1f322b; --warn:#e7b25c; --warn-soft:#352a17; --bad:#ef8a80; --good:#7fd19d;
+  --c-tax:#e07a70; --c-ni:#e2a85a; --c-sl:#a99ad6; --c-pen:#6fb0d3; --c-home:#6cc3a3; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+.wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font-family:var(--f-display);font-weight:700;font-size:28px;letter-spacing:-.01em;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-size:19px;margin:0;font-weight:600;text-wrap:balance}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0;font-weight:600}
+p{margin:0;max-width:68ch}
+.lede{color:var(--muted)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px 20px}
+label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+label .hint{font-size:12px;color:var(--muted);opacity:.85}
+input[type=number],select{font-family:var(--f-mono);font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);width:100%}
+select{font-family:var(--f-body)}
+input.big{font-size:20px;padding:9px 12px}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.check{flex-direction:row;align-items:center;gap:8px;color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+button{font:inherit;font-weight:600;font-size:14px;padding:8px 16px;border-radius:4px;border:1px solid var(--accent);background:var(--accent);color:var(--surface);cursor:pointer}
+button.ghost{background:transparent;color:var(--accent)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));border:1px solid var(--line);border-radius:6px;background:var(--surface);overflow:hidden}
+.summary div{padding:14px 18px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px;margin-bottom:-1px}
+.summary .v{font-family:var(--f-mono);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums}
+.summary .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.summary .s{font-size:12.5px;color:var(--muted);font-family:var(--f-mono)}
+.summary .lead .v{color:var(--accent)}
+.bar{display:flex;height:22px;border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.bar span{display:block;height:100%;transition:width .25s}
+@media (prefers-reduced-motion:reduce){.bar span{transition:none}}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend b{font-family:var(--f-mono);font-weight:500;color:var(--ink)}
+.sw{width:10px;height:10px;display:inline-block;border-radius:2px}
+.cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:24px}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{text-align:left;font-weight:600;color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.r,th.r{text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+th.r{font-family:var(--f-body)}
+tr.sub td{color:var(--muted);font-size:12px}
+tr.tot td{font-weight:600;border-bottom:none;border-top:1px solid var(--line)}
+tr.zero td{color:var(--muted);opacity:.6}
+dl.calc{display:grid;grid-template-columns:1fr auto;gap:6px 14px;margin:0;font-size:13.5px}
+dl.calc dt{color:var(--muted)} dl.calc dd{margin:0;text-align:right;font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+dl.calc .total{border-top:1px solid var(--line);padding-top:8px;font-weight:600;color:var(--ink)}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.flag{background:var(--warn-soft);color:var(--warn);border-radius:4px;padding:10px 12px;font-size:13px}
+.flags{display:flex;flex-direction:column;gap:8px}
+.chart{overflow-x:auto}
+.chart svg{display:block;width:100%;min-width:560px;height:auto}
+.chart text{fill:var(--muted);font-family:var(--f-mono);font-size:11px}
+ul.rules{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;max-width:72ch;color:var(--muted);font-size:14px}
+ul.rules b{color:var(--ink);font-weight:600}
+.head-row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 20px;align-items:baseline}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>Salary Tax Calculator</h1>
+    <p class="lede">Enter your salary for the 2026/27 tax year (6 April 2026 to 5 April 2027). It works out income tax, National Insurance and student loan, including the effect of salary sacrifice and SIPP contributions. England, Wales and Northern Ireland rates.</p>
+  </header>
+
+  <section class="panel" aria-label="Your income">
+    <div class="head-row"><h3>Your income</h3><button id="reset" class="ghost" type="button">Reset to example</button></div>
+    <div class="grid">
+      <label>Annual salary (£)<input class="big" type="number" id="salary" min="0" step="500" inputmode="decimal"></label>
+      <label>Bonus this year (£)<input type="number" id="bonus" min="0" step="100" inputmode="decimal" placeholder="0"><span class="hint">Taxed through PAYE like salary</span></label>
+      <label>Taxable benefits (£)<input type="number" id="bik" min="0" step="50" inputmode="decimal" placeholder="0"><span class="hint">P11D value, e.g. private medical. Income tax only</span></label>
+    </div>
+    <h3 style="margin-top:4px">Pension</h3>
+    <div class="grid">
+      <label>Salary sacrifice (% of salary)<input type="number" id="sacPct" min="0" max="100" step="0.5" inputmode="decimal" placeholder="0"></label>
+      <label class="check" style="align-self:end;padding-bottom:8px"><input type="checkbox" id="sacBonus"> Sacrifice the same % of bonus</label>
+      <label>SIPP contributions you pay (£/yr)<input type="number" id="sippNet" min="0" step="100" inputmode="decimal" placeholder="0"><span class="hint">What leaves your bank. The 20% top-up is added for you</span></label>
+    </div>
+    <h3 style="margin-top:4px">Student loan</h3>
+    <div class="grid">
+      <label>Repayment plan<select id="plan">
+        <option value="none">None</option>
+        <option value="p1">Plan 1</option>
+        <option value="p2">Plan 2</option>
+        <option value="p4">Plan 4 (Scotland)</option>
+        <option value="p5">Plan 5</option>
+      </select></label>
+      <label class="check" style="align-self:end;padding-bottom:8px"><input type="checkbox" id="pg"> Postgraduate loan as well</label>
+    </div>
+  </section>
+
+  <section id="summary" class="summary" aria-live="polite"></section>
+
+  <section class="panel">
+    <div class="head-row"><h2>Where your pay goes</h2><span class="lede" id="ofGross" style="font-size:13px"></span></div>
+    <div class="bar" id="bar" role="img"></div>
+    <div class="legend" id="legend"></div>
+    <div class="flags" id="flags"></div>
+  </section>
+
+  <section class="panel">
+    <h2>How it's worked out</h2>
+    <div class="cols">
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+        <h3>Income tax by band</h3>
+        <div class="tablewrap"><table id="bands"></table></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px;min-width:0">
+        <div style="display:flex;flex-direction:column;gap:10px"><h3>Taxable pay</h3><dl class="calc" id="income"></dl></div>
+        <div style="display:flex;flex-direction:column;gap:10px"><h3>National Insurance</h3><dl class="calc" id="ni"></dl></div>
+        <div style="display:flex;flex-direction:column;gap:10px" id="slWrap"><h3>Student loan</h3><dl class="calc" id="sl"></dl></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="head-row">
+      <h2>Your marginal rate</h2>
+      <span class="pill" id="margPill"></span>
+    </div>
+    <p class="lede" style="font-size:14px">Of each extra £1 of salary, how much goes on income tax, NI and student loan, with your pension and loan settings held the same. The marker is you.</p>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <section class="panel">
+    <div class="head-row"><h2>Monthly payslip</h2><span class="lede" style="font-size:13px">Annual figures ÷ 12. Bonus months will look different</span></div>
+    <div class="tablewrap"><table id="monthly"></table></div>
+  </section>
+
+  <section class="panel">
+    <h3>Rules applied</h3>
+    <ul class="rules">
+      <li><b>Personal allowance</b> £12,570. It drops by £1 for every £2 of adjusted net income over £100,000 and is gone at £125,140, which makes the effective rate in that band 60% (62% with NI).</li>
+      <li><b>Income tax</b> 20% on the first £37,700 of taxable income, 40% up to £125,140, 45% above.</li>
+      <li><b>Employee NI</b> (Class 1) 8% on earnings between £12,570 and £50,270, 2% above. Worked out on an annual basis; payroll does it per pay period, so a bonus month can differ a little. Benefits in kind don't attract employee NI.</li>
+      <li><b>Salary sacrifice</b> comes off your pay before tax, NI and student loan are worked out, so you save all three. Your employer also saves 15% employer NI on it.</li>
+      <li><b>SIPP (relief at source).</b> You pay 80%, the provider claims 20% from HMRC. The gross amount also widens your basic and higher rate bands and reduces adjusted net income, which can restore the personal allowance above £100k. The extra relief over 20% is claimed through self-assessment, shown here as a reclaim.</li>
+      <li><b>Student loan</b> 9% over the threshold: Plan 1 £26,900, Plan 2 £29,385, Plan 4 £33,795, Plan 5 £25,000. Postgraduate loan 6% over £21,000, on top of any undergraduate plan.</li>
+      <li><b>Employer NI</b> 15% over £5,000, shown for context. It isn't deducted from your pay.</li>
+      <li><b>Not covered.</b> Scottish income tax rates, savings interest, dividends, capital gains, self-employed or rental income, the High Income Child Benefit Charge, and tax code adjustments for things like underpayments from earlier years.</li>
+      <li>This is an estimate to check your payslip and self-assessment against, not tax advice.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const R = {
+  pa:12570, taperFrom:100000, basic:37700, addl:125140,
+  niPT:12570, niUEL:50270, niMain:.08, niUpper:.02,
+  erST:5000, erRate:.15,
+  sl:{p1:26900,p2:29385,p4:33795,p5:25000}, slRate:.09, pgT:21000, pgRate:.06
+};
+const PLAN_NAME={p1:"Plan 1",p2:"Plan 2",p4:"Plan 4",p5:"Plan 5"};
+const EXAMPLE={salary:85000,bonus:0,bik:0,sacPct:5,sacBonus:false,sippNet:0,plan:"none",pg:false};
+const ids=["salary","bonus","bik","sacPct","sacBonus","sippNet","plan","pg"];
+const $=id=>document.getElementById(id);
+const clamp=(x,a,b)=>Math.min(Math.max(x,a),b);
+const r2=x=>Math.round(x*100)/100;
+const fmt=n=>(n<0?"−":"")+"£"+Math.abs(Math.round(n)).toLocaleString("en-GB");
+const fmtP=n=>(n<0?"−":"")+"£"+Math.abs(n).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct=(n,d=1)=>(n*100).toFixed(d).replace(/\.0$/,"")+"%";
+
+function compute(i){
+  const salary=Math.max(0,i.salary||0), bonus=Math.max(0,i.bonus||0), bik=Math.max(0,i.bik||0);
+  const sp=clamp(i.sacPct||0,0,100)/100;
+  const sac=salary*sp+(i.sacBonus?bonus*sp:0);
+  const gross=salary+bonus;
+  const pay=gross-sac;                       // earnings for NI and student loan
+  const sippNet=Math.max(0,i.sippNet||0), sippGross=sippNet/0.8;
+  const totalIncome=pay+bik;                 // for income tax
+  const ani=Math.max(0,totalIncome-sippGross);
+  const pa=ani>R.taperFrom?Math.max(0,R.pa-Math.floor((ani-R.taperFrom)/2)):R.pa;
+  const paLost=R.pa-pa;
+  const basicTop=R.basic+sippGross, addlTop=R.addl+sippGross;
+  const taxable=Math.max(0,totalIncome-pa);
+  const atBasic=Math.min(taxable,basicTop);
+  const atHigher=clamp(taxable-basicTop,0,addlTop-basicTop);
+  const atAddl=Math.max(0,taxable-addlTop);
+  const tBasic=atBasic*.2, tHigher=atHigher*.4, tAddl=atAddl*.45;
+  const tax=tBasic+tHigher+tAddl;
+  const niMain=clamp(pay-R.niPT,0,R.niUEL-R.niPT)*R.niMain;
+  const niUp=Math.max(0,pay-R.niUEL)*R.niUpper;
+  const ni=niMain+niUp;
+  let ug=0; const plan=i.plan in R.sl?i.plan:"none";
+  if(plan!=="none") ug=Math.floor(Math.max(0,pay-R.sl[plan])*R.slRate);
+  const pgAmt=i.pg?Math.floor(Math.max(0,pay-R.pgT)*R.pgRate):0;
+  const sl=ug+pgAmt;
+  const erNI=Math.max(0,pay-R.erST)*R.erRate;
+  const erSaved=Math.min(sac,Math.max(0,gross-R.erST))*R.erRate;
+  // cash in hand: PAYE tax is on all income incl. benefits, but the benefit itself isn't cash
+  const takeHome=pay-tax-ni-sl;
+  return {salary,bonus,bik,gross,sac,pay,sippNet,sippGross,totalIncome,ani,pa,paLost,basicTop,addlTop,taxable,
+    atBasic,atHigher,atAddl,tBasic,tHigher,tAddl,tax,niMain,niUp,ni,plan,ug,pgAmt,sl,erNI,erSaved,takeHome,
+    afterSipp:takeHome-sippNet};
+}
+function deductions(i){ const c=compute(i); return c.tax+c.ni+c.sl; }
+function marginal(i){
+  const step=100; const a=deductions(i), b=deductions({...i,salary:(i.salary||0)+step});
+  return (b-a)/step;
+}
+function sippReclaim(i){
+  if(!(i.sippNet>0)) return 0;
+  const withS=compute(i).tax, without=compute({...i,sippNet:0}).tax;
+  return Math.max(0,without-withS);  // band widening + restored PA; the 20% is already added at source
+}
+
+function read(){
+  const o={};
+  ids.forEach(k=>{const el=$(k); o[k]=el.type==="checkbox"?el.checked:el.tagName==="SELECT"?el.value:parseFloat(el.value);});
+  return o;
+}
+function write(o){
+  ids.forEach(k=>{const el=$(k); if(el.type==="checkbox") el.checked=!!o[k]; else if(el.tagName==="SELECT") el.value=o[k]||"none"; else el.value=o[k]?o[k]:"";});
+}
+function save(o){ try{localStorage.setItem("salaryTax2627",JSON.stringify(o));}catch(e){} }
+function load(){ try{const s=localStorage.getItem("salaryTax2627"); return s?JSON.parse(s):null;}catch(e){return null;} }
+
+function render(){
+  const i=read(); save(i);
+  const c=compute(i), m=marginal(i), reclaim=sippReclaim(i);
+  const eff=c.gross>0?(c.tax+c.ni+c.sl)/c.gross:0;
+
+  $("summary").innerHTML=`
+    <div class="lead"><span class="k">Take-home</span><span class="v">${fmt(c.takeHome)}</span><span class="s">${fmt(c.takeHome/12)} a month</span></div>
+    <div><span class="k">Income tax</span><span class="v">${fmt(c.tax)}</span><span class="s">${fmt(c.tax/12)} a month</span></div>
+    <div><span class="k">National Insurance</span><span class="v">${fmt(c.ni)}</span><span class="s">${fmt(c.ni/12)} a month</span></div>
+    ${c.sl>0||c.plan!=="none"||i.pg?`<div><span class="k">Student loan</span><span class="v">${fmt(c.sl)}</span><span class="s">${fmt(c.sl/12)} a month</span></div>`:""}
+    <div><span class="k">Effective rate</span><span class="v">${pct(eff)}</span><span class="s">marginal ${pct(m,0)}</span></div>`;
+
+  // bar
+  const parts=[
+    ["Take-home",c.takeHome-(c.sippNet>0?c.sippNet:0),"--c-home"],
+    ["Income tax",c.tax,"--c-tax"],["NI",c.ni,"--c-ni"],["Student loan",c.sl,"--c-sl"],
+    ["Pension (sacrifice)",c.sac,"--c-pen"],["SIPP (your share)",c.sippNet,"--c-pen"]
+  ].filter(p=>p[1]>0.5);
+  const base=c.gross+c.bik>0?parts.reduce((s,p)=>s+p[1],0):1;
+  $("bar").innerHTML=parts.map((p,k)=>`<span style="width:${p[1]/base*100}%;background:var(${p[2]});${p[0].startsWith("SIPP")?"opacity:.55":""}" title="${p[0]}: ${fmt(p[1])}"></span>`).join("");
+  $("bar").setAttribute("aria-label",parts.map(p=>`${p[0]} ${fmt(p[1])}`).join(", "));
+  $("legend").innerHTML=parts.map(p=>`<span><i class="sw" style="background:var(${p[2]});${p[0].startsWith("SIPP")?"opacity:.55":""}"></i>${p[0]} <b>${fmt(p[1])}</b> · ${pct(p[1]/base,0)}</span>`).join("");
+  $("ofGross").textContent=c.gross>0?`Of ${fmt(c.gross)} gross${c.bik?` plus ${fmt(c.bik)} benefits`:""}`:"";
+
+  // flags
+  const f=[];
+  if(c.ani>R.taperFrom && c.paLost>0) f.push(`Your adjusted net income is ${fmt(c.ani)}, so you've lost ${fmt(c.paLost)} of personal allowance. ${c.ani<R.addl?`Every extra £1 here costs about ${pct(m,0)}. Getting adjusted net income down to £100,000 would take another ${fmt(c.ani-R.taperFrom)} of salary sacrifice or ${fmt((c.ani-R.taperFrom)*0.8)} paid into your SIPP.`:""}`);
+  else if(c.ani>R.taperFrom-5000 && c.ani<=R.taperFrom) f.push(`You're ${fmt(R.taperFrom-c.ani)} below the £100,000 point where the personal allowance starts tapering.`);
+  if(reclaim>0.5) f.push(`Your SIPP should get you about ${fmt(reclaim)} back through self-assessment, on top of the ${fmt(c.sippGross-c.sippNet)} basic-rate top-up your provider claims.`);
+  if(c.sac>0) f.push(`Salary sacrifice saves your employer about ${fmt(c.erSaved)} in employer NI. Some employers pass part of this back into your pension.`);
+  if(c.bik>0) f.push(`Benefits add ${fmt(c.bik)} to your taxable income but no cash, so the tax on them (${fmt(c.tax-compute({...i,bik:0}).tax)}) comes out of your take-home through your tax code.`);
+  $("flags").innerHTML=f.map((t,k)=>`<div class="${k===0&&c.paLost>0?"flag":"lede"}" style="font-size:13.5px">${t}</div>`).join("");
+
+  // bands
+  const rows=[
+    ["Personal allowance","0%",Math.min(c.totalIncome,c.pa),0],
+    ["Basic rate","20%",c.atBasic,c.tBasic],
+    ["Higher rate","40%",c.atHigher,c.tHigher],
+    ["Additional rate","45%",c.atAddl,c.tAddl]
+  ];
+  $("bands").innerHTML=`<thead><tr><th>Band</th><th class="r">Rate</th><th class="r">Income in band</th><th class="r">Tax</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr class="${r[2]<0.5?"zero":""}"><td>${r[0]}</td><td class="r">${r[1]}</td><td class="r">${fmt(r[2])}</td><td class="r">${fmtP(r[3])}</td></tr>`).join("")+
+    (c.paLost>0?`<tr class="sub"><td colspan="4">Allowance cut from £12,570 to ${fmt(c.pa)} by the taper</td></tr>`:"")+
+    (c.sippGross>0?`<tr class="sub"><td colspan="4">Basic rate band widened by your gross SIPP contribution to ${fmt(c.basicTop)}</td></tr>`:"")+
+    `<tr class="tot"><td>Total</td><td></td><td class="r">${fmt(c.totalIncome)}</td><td class="r">${fmtP(c.tax)}</td></tr></tbody>`;
+
+  $("income").innerHTML=`
+    <dt>Salary</dt><dd>${fmt(c.salary)}</dd>
+    ${c.bonus?`<dt>Bonus</dt><dd>${fmt(c.bonus)}</dd>`:""}
+    ${c.sac?`<dt>Salary sacrifice</dt><dd>−${fmt(c.sac).slice(1)}</dd>`:""}
+    <dt class="total">Pay through payroll</dt><dd class="total">${fmt(c.pay)}</dd>
+    ${c.bik?`<dt>Benefits in kind</dt><dd>${fmt(c.bik)}</dd>`:""}
+    ${c.sippGross?`<dt>Gross SIPP (for allowance taper)</dt><dd>−${fmt(c.sippGross).slice(1)}</dd>`:""}
+    <dt class="total">Adjusted net income</dt><dd class="total">${fmt(c.ani)}</dd>`;
+
+  $("ni").innerHTML=`
+    <dt>8% on ${fmt(clamp(c.pay-R.niPT,0,R.niUEL-R.niPT))}</dt><dd>${fmtP(c.niMain)}</dd>
+    <dt>2% on ${fmt(Math.max(0,c.pay-R.niUEL))}</dt><dd>${fmtP(c.niUp)}</dd>
+    <dt class="total">Employee NI</dt><dd class="total">${fmtP(c.ni)}</dd>
+    <dt>Employer NI (not from your pay)</dt><dd>${fmt(c.erNI)}</dd>`;
+
+  const slShow=c.plan!=="none"||i.pg;
+  $("slWrap").hidden=!slShow;
+  if(slShow) $("sl").innerHTML=
+    (c.plan!=="none"?`<dt>${PLAN_NAME[c.plan]}: 9% over ${fmt(R.sl[c.plan])}</dt><dd>${fmt(c.ug)}</dd>`:"")+
+    (i.pg?`<dt>Postgraduate: 6% over £21,000</dt><dd>${fmt(c.pgAmt)}</dd>`:"")+
+    `<dt class="total">Total repayments</dt><dd class="total">${fmt(c.sl)}</dd>`;
+
+  // monthly
+  const mrow=(k,v,cls="")=>`<tr class="${cls}"><td>${k}</td><td class="r">${fmtP(v/12)}</td><td class="r">${fmt(v)}</td></tr>`;
+  $("monthly").innerHTML=`<thead><tr><th></th><th class="r">Month</th><th class="r">Year</th></tr></thead><tbody>`+
+    mrow("Gross pay",c.gross)+(c.sac?mrow("Pension (salary sacrifice)",-c.sac):"")+
+    mrow("Income tax",-c.tax)+mrow("National Insurance",-c.ni)+(c.sl?mrow("Student loan",-c.sl):"")+
+    mrow("Net pay",c.takeHome,"tot")+
+    (c.sippNet?mrow("SIPP payment from your bank",-c.sippNet,"sub")+mrow("Left after SIPP",c.afterSipp,"sub"):"")+
+    `</tbody>`;
+
+  $("margPill").textContent=`${pct(m,0)} on your next £1`;
+  $("margPill").className="pill"+(m>=0.5?" warn":"");
+  drawChart(i,c);
+}
+
+function drawChart(i,c){
+  const W=760,H=230,L=44,Rt=16,T=14,B=34;
+  const cur=c.salary;
+  const xMax=Math.max(160000,Math.ceil(cur*1.25/20000)*20000);
+  const yMax=0.7;
+  const X=v=>L+(v/xMax)*(W-L-Rt), Y=v=>T+(1-v/yMax)*(H-T-B);
+  const pts=[]; const step=xMax/380;
+  for(let s=0;s<=xMax;s+=step){ pts.push([s,clamp(marginal({...i,salary:s}),0,yMax)]); }
+  let d=""; pts.forEach((p,k)=>{ d+=(k?` H${X(p[0]).toFixed(1)} V${Y(p[1]).toFixed(1)}`:`M${X(p[0]).toFixed(1)} ${Y(p[1]).toFixed(1)}`); });
+  let grid="", ylab="";
+  [0,0.1,0.2,0.3,0.4,0.5,0.6,0.7].forEach(v=>{
+    grid+=`<line x1="${L}" x2="${W-Rt}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)" stroke-width="1"/>`;
+    ylab+=`<text x="${L-8}" y="${Y(v)+4}" text-anchor="end">${Math.round(v*100)}%</text>`;
+  });
+  let xlab=""; const xs=xMax>200000?40000:20000;
+  for(let v=0;v<=xMax;v+=xs) xlab+=`<text x="${X(v)}" y="${H-12}" text-anchor="middle">${v?"£"+v/1000+"k":"£0"}</text>`;
+  const cm=clamp(marginal(i),0,yMax);
+  const cx=X(Math.min(cur,xMax)), cy=Y(cm);
+  $("chart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Marginal deduction rate by salary">
+    ${grid}${ylab}${xlab}
+    <path d="${d} V${Y(0)} H${X(0)} Z" fill="var(--accent-soft)" stroke="none"/>
+    <path d="${d}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
+    <line x1="${cx}" x2="${cx}" y1="${T}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="1" stroke-dasharray="3 3"/>
+    <circle cx="${cx}" cy="${cy}" r="5" fill="var(--surface)" stroke="var(--ink)" stroke-width="2"/>
+    <text x="${cx+(cx>W-140?-8:8)}" y="${Math.max(T+12,cy-10)}" text-anchor="${cx>W-140?"end":"start"}" style="fill:var(--ink);font-weight:500">${fmt(cur)} · ${pct(cm,0)}</text>
+  </svg>`;
+}
+
+const saved=load();
+write(saved||EXAMPLE);
+ids.forEach(k=>$(k).addEventListener("input",render));
+$("reset").addEventListener("click",()=>{write(EXAMPLE);render();});
+render();
+</script>
+</body>
+</html>
