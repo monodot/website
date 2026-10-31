@@ -62,3 +62,32 @@
     }
   }
 }
+
+// Site header: on small screens, put the site title and the nav links on
+// separate lines, and let the links wrap, so the header never overflows.
+// From 768px (Pico's "md" breakpoint) up, they sit side by side as before.
+@media (max-width: 767.98px) {
+  body > header nav {
+    flex-direction: column;
+    align-items: flex-start;
+
+    ul {
+      flex-wrap: wrap;
+      margin-left: calc(var(--pico-nav-element-spacing-horizontal) * -1);
+      margin-right: calc(var(--pico-nav-element-spacing-horizontal) * -1);
+    }
+
+    ul:first-of-type li {
+      padding-bottom: 0;
+    }
+
+    ul:last-of-type li {
+      padding-top: 0.25rem;
+      padding-bottom: 0.25rem;
+    }
+
+    ul:last-of-type {
+      padding-bottom: 0.75rem;
+    }
+  }
+}
