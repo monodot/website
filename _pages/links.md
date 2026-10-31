@@ -23,14 +23,18 @@ Blogs and sites from my friends, which you should go and visit!
 
 - [Do The Maths Thing - sharing fun maths stuff for everyone, with Susan Okereke][susan] - Susan also hosts the [Maths Appeal][mathsappeal] podcast
 
+- [Imma Valls - developer advocate][imma] - Imma is a fantastic developer advocate who I work with at Grafana Labs. Together we gave a [workshop on k6 at Cloud Native Norway in Bergen][k6-bergen] in 2026
+
 - [TEFL Iberia - TEFL courses in Barcelona][tefliberia] - if you're wanting to teach English abroad then check out these folks!
 
 [1writer-web]: http://1writerapp.com/
 [book]: https://www.classicfm.com/radio/shows-presenters/saturday-night-movies/book/
 [foursquare-ios]: https://itunes.apple.com/gb/app/foursquare-city-guide/id306934924?mt=8
 [foursquare-web]: https://foursquare.com/
+[imma]: https://eyeveebee.dev/
 [jek]: https://jekyllrb.com/
 [jenny]: https://jennynelson.co.uk/
+[k6-bergen]: /notes/k6-workshop-bergen-thankyou/
 [lucky]: https://www.luckytrip.co.uk/
 [mathsappeal]: http://itunes.apple.com/gb/podcast/maths-appeal/id1445702010
 [picocss]: https://picocss.com/
