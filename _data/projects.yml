@@ -58,3 +58,10 @@ projects:
     link_text: Open Manikure
     extra_label: GitHub
     extra_url: https://github.com/monodot/manikure
+  - title: Capital Gains Tax calculator
+    section: Web Tools
+    description: "A calculator created with Claude to estimate Capital Gains Tax
+      due on investments that are outside an ISA (e.g. an investment account).
+      Matches buy/sell transactions using the HMRC rules. All completely private."
+    url: /projects/cgt-calculator/
+    link_text: Open the CGT Calculator

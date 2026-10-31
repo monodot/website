@@ -1,0 +1,1264 @@
+<!doctype html>
+<!--
+  Share CGT Calculator
+  Copyright (c) 2026 Tom Donohue
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html>
+<head>
+  <meta charset=utf8>
+  <meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <style>:root {
+      color-scheme: light;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px)
+  }
+
+  html {
+      scroll-padding-top: env(safe-area-inset-top, 0px)
+  }
+
+  body {
+      margin: 0;
+      padding: 0;
+      font: 14px -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #fff;
+      color: #000
+  }
+
+  img {
+      max-width: 100%
+  }
+
+  [hidden]:not([hidden=until-found i]) {
+      display: none !important
+  }</style>
+</head>
+<body>
+<title>Share CGT Calculator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+    /* Layout: single ledger column — input sheet, then one card per tax year, then the rules applied */
+    :root {
+        --bg: #f3f5f3;
+        --surface: #ffffff;
+        --ink: #18211d;
+        --muted: #5d6b64;
+        --line: #d8dfdb;
+        --accent: #1d5e4b;
+        --accent-soft: #e3efe9;
+        --hl-direct: #fbe9c9;
+        --hl-pool: #eef3f0;
+        --warn: #9a5b00;
+        --warn-soft: #fbf0dc;
+        --bad: #a3302a;
+        --good: #1d6b3f;
+        --f-display: "Schibsted Grotesk", system-ui, sans-serif;
+        --f-body: "Schibsted Grotesk", system-ui, sans-serif;
+        --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --bg: #121715;
+            --surface: #1a211e;
+            --ink: #e4ebe7;
+            --muted: #97a69f;
+            --line: #2d3833;
+            --accent: #6cc3a3;
+            --accent-soft: #1f322b;
+            --hl-direct: #3e3018;
+            --hl-pool: #222b27;
+            --warn: #e7b25c;
+            --warn-soft: #352a17;
+            --bad: #ef8a80;
+            --good: #7fd19d;
+            color-scheme: dark
+        }
+    }
+
+    :root[data-theme="dark"] {
+        --bg: #121715;
+        --surface: #1a211e;
+        --ink: #e4ebe7;
+        --muted: #97a69f;
+        --line: #2d3833;
+        --accent: #6cc3a3;
+        --accent-soft: #1f322b;
+        --hl-direct: #3e3018;
+        --hl-pool: #222b27;
+        --warn: #e7b25c;
+        --warn-soft: #352a17;
+        --bad: #ef8a80;
+        --good: #7fd19d;
+        color-scheme: dark
+    }
+
+    * {
+        box-sizing: border-box
+    }
+
+    body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--f-body);
+        font-size: 15px;
+        line-height: 1.5;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-block: 32px 64px
+    }
+
+    .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 28px
+    }
+
+    h1 {
+        font-family: var(--f-display);
+        font-weight: 700;
+        font-size: 28px;
+        letter-spacing: -.01em;
+        margin: 0;
+        text-wrap: balance
+    }
+
+    h2 {
+        font-family: var(--f-display);
+        font-size: 19px;
+        margin: 0;
+        font-weight: 600
+    }
+
+    h3 {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        color: var(--muted);
+        margin: 0;
+        font-weight: 600
+    }
+
+    p {
+        margin: 0;
+        max-width: 68ch
+    }
+
+    .lede {
+        color: var(--muted)
+    }
+
+    .num, .mono {
+        font-family: var(--f-mono);
+        font-variant-numeric: tabular-nums
+    }
+
+    .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-width: 0
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 170px;
+        font-family: var(--f-mono);
+        font-size: 12.5px;
+        line-height: 1.55;
+        padding: 12px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: var(--bg);
+        color: var(--ink);
+        resize: vertical
+    }
+
+    textarea:focus, input:focus, button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center
+    }
+
+    button {
+        font: inherit;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 8px 16px;
+        border-radius: 4px;
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: var(--surface);
+        cursor: pointer
+    }
+
+    button.ghost {
+        background: transparent;
+        color: var(--accent)
+    }
+
+    label {
+        font-size: 13px;
+        color: var(--muted);
+        display: flex;
+        flex-direction: column;
+        gap: 4px
+    }
+
+    input[type=number] {
+        font-family: var(--f-mono);
+        font-size: 14px;
+        padding: 7px 10px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: var(--bg);
+        color: var(--ink);
+        width: 170px
+    }
+
+    .summary {
+        display: grid;
+        grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--surface);
+        overflow: hidden
+    }
+
+    .summary div {
+        padding: 14px 18px;
+        border-right: 1px solid var(--line);
+        display: flex;
+        flex-direction: column;
+        gap: 2px
+    }
+
+    .summary div:last-child {
+        border-right: none
+    }
+
+    .summary .v {
+        font-family: var(--f-mono);
+        font-size: 20px;
+        font-weight: 500
+    }
+
+    .summary .k {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .06em
+    }
+
+    .year {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow: hidden
+    }
+
+    .year-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px 24px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--line)
+    }
+
+    .year-head .dates {
+        color: var(--muted);
+        font-size: 13px
+    }
+
+    .year-body {
+        padding: 16px 20px;
+        display: grid;
+        grid-template-columns:minmax(0, 1.6fr) minmax(0, 1fr);
+        gap: 24px
+    }
+
+    @media (max-width: 760px) {
+        .year-body {
+            grid-template-columns:1fr
+        }
+    }
+
+    .tablewrap {
+        overflow-x: auto
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 13px
+    }
+
+    th {
+        text-align: left;
+        font-weight: 600;
+        color: var(--muted);
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap
+    }
+
+    td {
+        padding: 7px 8px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top
+    }
+
+    td.r, th.r {
+        text-align: right
+    }
+
+    tr:last-child td {
+        border-bottom: none
+    }
+
+    .fund {
+        max-width: 240px
+    }
+
+    .match {
+        font-size: 11.5px;
+        color: var(--muted);
+        font-family: var(--f-mono);
+        margin-top: 2px
+    }
+
+    .pos {
+        color: var(--good)
+    }
+
+    .neg {
+        color: var(--bad)
+    }
+
+    dl.calc {
+        display: grid;
+        grid-template-columns:1fr auto;
+        gap: 6px 14px;
+        margin: 0;
+        font-size: 13.5px
+    }
+
+    dl.calc dt {
+        color: var(--muted)
+    }
+
+    dl.calc dd {
+        margin: 0;
+        text-align: right;
+        font-family: var(--f-mono);
+        font-variant-numeric: tabular-nums
+    }
+
+    dl.calc .total {
+        border-top: 1px solid var(--line);
+        padding-top: 8px;
+        font-weight: 600;
+        color: var(--ink)
+    }
+
+    .pill {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent)
+    }
+
+    .pill.warn {
+        background: var(--warn-soft);
+        color: var(--warn)
+    }
+
+    .flag {
+        background: var(--warn-soft);
+        color: var(--warn);
+        border-radius: 4px;
+        padding: 10px 12px;
+        font-size: 13px
+    }
+
+    .errors {
+        display: flex;
+        flex-direction: column;
+        gap: 6px
+    }
+
+    ul.rules {
+        margin: 0;
+        padding-left: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 72ch;
+        color: var(--muted);
+        font-size: 14px
+    }
+
+    ul.rules b {
+        color: var(--ink);
+        font-weight: 600
+    }
+
+    .empty {
+        color: var(--muted);
+        padding: 20px;
+        text-align: center
+    }
+
+    .linkbtn {
+        all: unset;
+        cursor: pointer;
+        color: var(--ink);
+        text-decoration: underline;
+        text-decoration-color: var(--line);
+        text-underline-offset: 3px
+    }
+
+    .linkbtn:hover {
+        text-decoration-color: var(--accent)
+    }
+
+    .linkbtn:focus-visible {
+        outline: 2px solid var(--accent)
+    }
+
+    .fund-card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow: hidden
+    }
+
+    .fund-card summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 14px 20px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 8px 20px;
+        align-items: baseline;
+        border-bottom: 1px solid var(--line)
+    }
+
+    .fund-card summary::-webkit-details-marker {
+        display: none
+    }
+
+    .fund-card summary h2 {
+        font-size: 16px
+    }
+
+    .fund-card summary .holding {
+        font-size: 13px;
+        color: var(--muted)
+    }
+
+    .fund-body {
+        padding: 16px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px
+    }
+
+    .timeline {
+        overflow-x: auto
+    }
+
+    .timeline svg {
+        display: block;
+        width: 100%;
+        min-width: 560px;
+        height: auto
+    }
+
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+        font-size: 12px;
+        color: var(--muted)
+    }
+
+    .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px
+    }
+
+    .sw {
+        width: 10px;
+        height: 10px;
+        display: inline-block
+    }
+
+    table.ledger td {
+        font-size: 12.5px
+    }
+
+    table.ledger tbody tr {
+        cursor: pointer
+    }
+
+    table.ledger tbody tr:hover {
+        background: var(--bg)
+    }
+
+    .tag {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 1px 7px;
+        border-radius: 3px
+    }
+
+    .tag.buy {
+        background: var(--accent-soft);
+        color: var(--good)
+    }
+
+    .tag.sell {
+        background: var(--warn-soft);
+        color: var(--bad)
+    }
+
+    .has-sel [data-id] {
+        opacity: .35;
+        transition: opacity .15s
+    }
+
+    .has-sel [data-id].sel, .has-sel [data-id].rel-direct, .has-sel [data-id].rel-pool {
+        opacity: 1
+    }
+
+    tr.sel {
+        background: var(--accent-soft) !important;
+        box-shadow: inset 3px 0 0 var(--accent)
+    }
+
+    tr.rel-direct {
+        background: var(--hl-direct) !important
+    }
+
+    tr.rel-pool {
+        background: var(--hl-pool) !important
+    }
+
+    .timeline .sel {
+        stroke: var(--ink);
+        stroke-width: 2.5
+    }
+
+    .recon {
+        font-size: 13px;
+        border-top: 1px solid var(--line);
+        padding-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 24px
+    }
+
+    .recon b {
+        font-family: var(--f-mono);
+        font-weight: 500
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .year {
+            transition: border-color .2s
+        }
+    }
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>Share CGT Calculator</h1>
+    <p class="lede">Paste your trades (outside an ISA or pension). It applies HMRC's share matching rules, then works
+      out the gain and estimated tax for each tax year ending 5 April.</p>
+    <p>Free to use. For information only. Completely private, your data never leaves your device. Works offline.</p>
+  </header>
+
+  <section class="panel">
+    <div class="row" style="justify-content:space-between">
+      <h3>Transactions</h3>
+      <span class="lede"
+            style="font-size:13px">CSV: date, ticker, type, quantity, price, brokerage · dates DD/MM/YYYY</span>
+    </div>
+    <textarea id="csv" spellcheck="false" aria-label="Transactions CSV"></textarea>
+    <div class="row">
+      <button id="calc">Calculate</button>
+      <button id="reset" class="ghost">Load example</button>
+      <label style="flex-direction:row;align-items:center;gap:8px">Losses brought forward from before this data (£)
+        <input type="number" id="bf" min="0" step="1" placeholder="0"></label>
+    </div>
+    <div id="errors" class="errors"></div>
+  </section>
+
+  <section id="summary" class="summary" aria-live="polite"></section>
+  <section id="years" style="display:flex;flex-direction:column;gap:20px"></section>
+
+  <section style="display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;flex-direction:column;gap:4px">
+      <h2>Fund ledgers</h2>
+      <p class="lede" style="font-size:14px">Every buy and sell for each fund in the order HMRC processes them, with the
+        pool after each step. Click a row or a marker to see what it's matched with. Sales and purchases on the same day
+        are combined into one line, as HMRC treats them.</p>
+    </div>
+    <div id="funds" style="display:flex;flex-direction:column;gap:20px"></div>
+  </section>
+
+  <section class="panel">
+    <h3>How this is worked out</h3>
+    <ul class="rules">
+      <li><b>Matching.</b> Each sale is matched first with shares of the same fund bought on the same day, then with any
+        bought in the following 30 days (the bed and breakfasting rule), and only then with the average cost of the
+        Section 104 pool.
+      </li>
+      <li><b>Costs.</b> Quantity × price, plus brokerage on buys. Brokerage on sales is deducted from proceeds.</li>
+      <li><b>Allowance.</b> £12,300 up to 2022/23, £6,000 in 2023/24, £3,000 from 2024/25. Same-year losses always come
+        off in full. Losses carried forward only bring gains down to the allowance, never below.
+      </li>
+      <li><b>Rates.</b> 10% / 20% for disposals before 30 October 2024, 18% / 24% from then on. In 2024/25 the losses
+        and allowance go against the higher-rate gains first.
+      </li>
+      <li><b>Your income</b> decides how much is taxed at the lower rate: whatever's left of the basic rate band after
+        your taxable income. Leave it blank and everything is taxed at the higher rate. Pension contributions and Gift
+        Aid extend the band; this doesn't model that.
+      </li>
+      <li><b>Not covered.</b> Accumulation funds: the reinvested income you're taxed on each year (shown on your annual
+        tax voucher) should be added to the cost of the holding, which cuts your gain. Equalisation payments on
+        first-year fund units also reduce cost. Add these as extra "Buy" rows with quantity 0 and the amount as price ×
+        1, or adjust manually.
+      </li>
+      <li>This is an estimate to check your own figures against, not tax advice.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+  const EXAMPLE = `date,ticker,type,quantity,price,brokerage
+15/03/2021,Global Equity Index Fund,Buy,100,200.00,0
+10/09/2022,Global Equity Index Fund,Buy,50,180.00,0
+12/06/2024,Global Equity Index Fund,Sell,80,240.00,0
+02/07/2024,Global Equity Index Fund,Buy,20,236.00,0
+20/01/2025,UK Equity ETF,Buy,500,8.00,0
+14/02/2026,UK Equity ETF,Sell,500,7.40,0`;
+
+  const RATE_CHANGE = Date.UTC(2024, 9, 30); // 30 Oct 2024
+  const EPS = 1e-7;
+  const fmt = n => (n < 0 ? '−' : '') + '£' + Math.abs(n).toLocaleString('en-GB', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  const fmtQ = n => n.toLocaleString('en-GB', { maximumFractionDigits: 6 });
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const dstr = t => new Date(t).toLocaleDateString('en-GB', {
+    timeZone: 'UTC',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
+
+  function aea(y) {
+    if (y <= 2018) return 11700;
+    if (y === 2019) return 12000;
+    if (y <= 2022) return 12300;
+    if (y === 2023) return 6000;
+    return 3000;
+  }
+
+  function band(y) {
+    return y >= 2021 ? 37700 : 37500;
+  }
+
+  function pa(y) {
+    return y >= 2021 ? 12570 : 12500;
+  }
+
+  function taxYearStart(t) {
+    const d = new Date(t);
+    const y = d.getUTCFullYear();
+    return t >= Date.UTC(y, 3, 6) ? y : y - 1;
+  }
+
+  const yLabel = y => `${y}/${String((y + 1) % 100).padStart(2, '0')}`;
+
+  function parseDate(s) {
+    s = s.trim();
+    let m;
+    if ((m = s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/))) return Date.UTC(+m[3], +m[2] - 1, +m[1]);
+    if ((m = s.match(/^(\d{4})-(\d{2})-(\d{2})/))) return Date.UTC(+m[1], +m[2] - 1, +m[3]);
+    return NaN;
+  }
+
+  function splitCSV(line) {
+    const out = [];
+    let cur = '', q = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (q) {
+        if (c === '"' && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else if (c === '"') q = false; else cur += c;
+      } else if (c === '"') q = true; else if (c === ',') {
+        out.push(cur);
+        cur = '';
+      } else cur += c;
+    }
+    out.push(cur);
+    return out.map(s => s.trim());
+  }
+
+  function parse(text) {
+    const errors = [], rows = [];
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    lines.forEach((l, i) => {
+      const f = splitCSV(l);
+      if (i === 0 && /date/i.test(f[0])) return;
+      if (f.length < 5) {
+        errors.push(`Line ${i + 1}: expected at least 5 columns.`);
+        return;
+      }
+      const [ds, ticker, type, qs, ps, bs] = f;
+      const date = parseDate(ds), qty = parseFloat(qs), price = parseFloat(ps), fee = parseFloat(bs || '0') || 0;
+      const t = type.toLowerCase();
+      if (isNaN(date)) {
+        errors.push(`Line ${i + 1}: can't read date "${esc(ds)}".`);
+        return;
+      }
+      if (!(t === 'buy' || t === 'sell')) {
+        errors.push(`Line ${i + 1}: type must be Buy or Sell, got "${esc(type)}".`);
+        return;
+      }
+      if (isNaN(qty) || isNaN(price)) {
+        errors.push(`Line ${i + 1}: quantity or price isn't a number.`);
+        return;
+      }
+      rows.push({ date, ticker, type: t, qty, price, fee });
+    });
+    return { rows, errors };
+  }
+
+  function match(rows) {
+    const byTicker = {};
+    rows.forEach(r => {
+      (byTicker[r.ticker] ||= []).push(r);
+    });
+    const disposals = [], funds = [];
+    for (const [ticker, txs] of Object.entries(byTicker)) {
+      // aggregate per day (HMRC treats same-day buys / sells as single transactions)
+      const acq = {}, dis = {};
+      txs.forEach(r => {
+        if (r.type === 'buy') {
+          const a = acq[r.date] ||= { date: r.date, qty: 0, cost: 0 };
+          a.qty += r.qty;
+          a.cost += r.qty * r.price + r.fee;
+        } else {
+          const d = dis[r.date] ||= { date: r.date, qty: 0, proceeds: 0 };
+          d.qty += r.qty;
+          d.proceeds += r.qty * r.price - r.fee;
+        }
+      });
+      txs.forEach(r => {
+        const o = r.type === 'buy' ? acq[r.date] : dis[r.date];
+        o.n = (o.n || 0) + 1;
+      });
+      const fid = funds.length;
+      const A = Object.values(acq).sort((a, b) => a.date - b.date).map((a, i) => ({
+        ...a,
+        rem: a.qty,
+        uses: [],
+        toPool: 0,
+        id: `f${fid}b${i}`,
+        kind: 'buy',
+        fid
+      }));
+      const D = Object.values(dis).sort((a, b) => a.date - b.date).map((d, i) => ({
+        ...d,
+        rem: d.qty,
+        cost: 0,
+        matches: [],
+        id: `f${fid}s${i}`,
+        kind: 'sell',
+        fid
+      }));
+      const take = (d, a, rule) => {
+        const q = Math.min(d.rem, a.rem);
+        if (q <= EPS) return;
+        const c = a.cost * q / a.qty;
+        d.cost += c;
+        d.rem -= q;
+        a.rem -= q;
+        d.matches.push({ rule, qty: q, cost: c, date: a.date, id: a.id });
+        a.uses.push({ rule, qty: q, date: d.date, id: d.id });
+      };
+      // 1. same day
+      D.forEach(d => {
+        const a = A.find(a => a.date === d.date);
+        if (a) take(d, a, 'Same day');
+      });
+      // 2. bed & breakfast: acquisitions in the next 30 days, earliest first
+      D.forEach(d => {
+        A.filter(a => a.date > d.date && a.date <= d.date + 30 * 864e5).forEach(a => {
+          if (d.rem > EPS) take(d, a, '30-day');
+        });
+      });
+      // 3. Section 104 pool — walk chronologically, disposals before same-date additions
+      const events = [...D.map(d => ({ t: d.date, k: 0, d })), ...A.map(a => ({
+        t: a.date,
+        k: 1,
+        a
+      }))].sort((x, y) => x.t - y.t || x.k - y.k);
+      const pool = { qty: 0, cost: 0 };
+      events.forEach(e => {
+        if (e.k === 1) {
+          if (e.a.rem > EPS) {
+            e.a.toPool = e.a.rem;
+            pool.qty += e.a.rem;
+            pool.cost += e.a.cost * e.a.rem / e.a.qty;
+          }
+          e.a.poolAfter = { ...pool };
+          return;
+        }
+        const d = e.d;
+        if (d.rem > EPS) {
+          const q = Math.min(d.rem, pool.qty);
+          if (q > EPS) {
+            const c = pool.cost * q / pool.qty;
+            pool.cost -= c;
+            pool.qty -= q;
+            d.cost += c;
+            d.rem -= q;
+            d.matches.push({ rule: 'S104 pool', qty: q, cost: c });
+          }
+          if (d.rem > EPS) {
+            d.missing = d.rem;
+          }
+        }
+        if (pool.qty < EPS) {
+          pool.qty = 0;
+          pool.cost = 0;
+        }
+        d.poolAfter = { ...pool };
+      });
+      const ledger = events.map(e => e.k ? e.a : e.d);
+      funds.push({ ticker, ledger, A, D, pool: { ...pool } });
+      D.forEach(d => disposals.push(Object.assign(d, { ticker })));
+    }
+    return { disposals: disposals.sort((a, b) => a.date - b.date), funds };
+  }
+
+  function taxYears(disposals, incomes, bfStart) {
+    const years = {};
+    disposals.forEach(d => {
+      const y = taxYearStart(d.date);
+      (years[y] ||= []).push(d);
+    });
+    let bf = bfStart || 0;
+    const out = [];
+    Object.keys(years).map(Number).sort((a, b) => a - b).forEach(y => {
+      const list = years[y];
+      const usable = list.filter(d => !d.missing);
+      // a disposal with missing history: count only the matched portion? No — exclude whole disposal, flag it
+      let gainsPre = 0, gainsPost = 0, losses = 0, proceeds = 0;
+      list.forEach(d => {
+        proceeds += d.proceeds;
+      });
+      usable.forEach(d => {
+        const g = d.proceeds - d.cost;
+        d.gain = g;
+        if (g >= 0) {
+          if (d.date < RATE_CHANGE) gainsPre += g; else gainsPost += g;
+        } else losses += -g;
+      });
+      list.filter(d => d.missing).forEach(d => d.gain = null);
+      const gross = gainsPre + gainsPost, net = gross - losses, allowance = aea(y);
+      const bfIn = bf;
+      let useBF = 0, taxable = 0, aeaUsed = 0, cfLoss = 0;
+      if (net <= 0) {
+        cfLoss = -net;
+        bf += cfLoss;
+      } else {
+        useBF = Math.min(bf, Math.max(0, net - allowance));
+        bf -= useBF;
+        aeaUsed = Math.min(allowance, net - useBF);
+        taxable = Math.max(0, net - useBF - allowance);
+      }
+      // allocate deductions against the higher-rate bucket (post) first
+      let ded = losses + useBF + aeaUsed;
+      let post = gainsPost, pre = gainsPre;
+      const dPost = Math.min(post, ded);
+      post -= dPost;
+      ded -= dPost;
+      pre -= Math.min(pre, ded);
+      const inc = incomes[y];
+      let bandLeft = 0;
+      if (inc !== undefined && inc !== '' && !isNaN(inc)) {
+        const i = +inc;
+        const effPA = Math.max(0, pa(y) - Math.max(0, (i - 100000) / 2));
+        bandLeft = Math.max(0, band(y) - Math.max(0, i - effPA));
+      }
+      // basic band to pre-change gains first (bigger saving: 10 vs 6 points)
+      const bPre = Math.min(pre, bandLeft), bPost = Math.min(post, bandLeft - bPre);
+      const tax = bPre * 0.10 + (pre - bPre) * 0.20 + bPost * 0.18 + (post - bPost) * 0.24;
+      const threshold = y >= 2023 ? 50000 : 4 * allowance;
+      const mustReport = taxable > 0 || proceeds > threshold || gross > allowance;
+      out.push({
+        y,
+        list,
+        gross,
+        losses,
+        net,
+        allowance,
+        bfIn,
+        useBF,
+        aeaUsed,
+        taxable,
+        tax,
+        cfLoss,
+        bfOut: bf,
+        proceeds,
+        mustReport,
+        threshold,
+        bandLeft,
+        incomeKnown: inc !== undefined && inc !== '',
+        lowAmt: bPre + bPost,
+        highAmt: (pre - bPre) + (post - bPost),
+        split: gainsPre > 0 && gainsPost > 0,
+        missing: list.some(d => d.missing)
+      });
+    });
+    return out;
+  }
+
+  // ---- state
+  const S = { csv: EXAMPLE, incomes: {}, bf: '' };
+  try {
+    const s = JSON.parse(localStorage.getItem('cgt-state') || 'null');
+    if (s) Object.assign(S, s);
+  } catch (e) {
+  }
+  const save = () => {
+    try {
+      localStorage.setItem('cgt-state', JSON.stringify(S));
+    } catch (e) {
+    }
+  };
+
+  const $ = id => document.getElementById(id);
+  $('csv').value = S.csv;
+  $('bf').value = S.bf;
+
+  function render() {
+    const { rows, errors } = parse(S.csv);
+    const { disposals, funds } = match(rows);
+    BYID = {};
+    funds.forEach(F => F.ledger.forEach(e => BYID[e.id] = e));
+    FUNDS = funds;
+    const years = taxYears(disposals, S.incomes, parseFloat(S.bf) || 0);
+    const missing = disposals.filter(d => d.missing);
+    $('errors').innerHTML = [...errors.map(e => `<div class="flag">${e}</div>`),
+      ...missing.map(d => `<div class="flag"><b>${esc(d.ticker)}</b> sale on ${dstr(d.date)}: ${fmtQ(d.missing)} units have no matching purchase in your data, so this sale is left out of the totals. Add the earlier buys (or one "Buy" row with your total holding and average cost).</div>`)].join('');
+
+    const totalTax = years.reduce((s, y) => s + y.tax, 0), totalGain = years.reduce((s, y) => s + y.net, 0);
+    const unknown = years.some(y => !y.incomeKnown && y.taxable > 0);
+    $('summary').innerHTML = years.length ? `
+    <div><span class="k">Tax years with sales</span><span class="v">${years.length}</span></div>
+    <div><span class="k">Net gains</span><span class="v">${fmt(totalGain)}</span></div>
+    <div><span class="k">Estimated CGT${unknown ? ' (max)' : ''}</span><span class="v">${fmt(totalTax)}</span></div>
+    <div><span class="k">Losses to carry forward</span><span class="v">${fmt(years.at(-1).bfOut)}</span></div>` : '';
+    $('summary').hidden = !years.length;
+    renderFunds(funds);
+
+    if (!years.length) {
+      $('years').innerHTML = `<div class="panel empty">No sales found yet. Add some Sell rows to see a tax year.</div>`;
+      return;
+    }
+
+    $('years').innerHTML = years.slice().reverse().map(Y => {
+      const rowsH = Y.list.map(d => `<tr>
+      <td class="mono" style="white-space:nowrap">${dstr(d.date)}</td>
+      <td class="fund"><button class="linkbtn" data-jump="${d.id}" title="Show in fund ledger">${esc(d.ticker)}</button>${d.matches.map(m => `<div class="match">${m.rule}${m.date ? ' ' + dstr(m.date) : ''}: ${fmtQ(m.qty)} @ ${fmt(m.cost / m.qty)}</div>`).join('')}${d.missing ? `<div class="match" style="color:var(--warn)">No cost basis: ${fmtQ(d.missing)} units</div>` : ''}</td>
+      <td class="r num">${fmt(d.proceeds)}</td>
+      <td class="r num">${d.missing ? '—' : fmt(d.cost)}</td>
+      <td class="r num ${d.gain == null ? '' : d.gain >= 0 ? 'pos' : 'neg'}">${d.gain == null ? 'excluded' : fmt(d.gain)}</td></tr>`).join('');
+      return `<article class="year">
+      <div class="year-head">
+        <div style="display:flex;flex-direction:column;gap:2px">
+          <h2>Tax year ${yLabel(Y.y)}</h2>
+          <span class="dates">6 Apr ${Y.y} – 5 Apr ${Y.y + 1}</span>
+        </div>
+        <div class="row">
+          ${Y.mustReport ? `<span class="pill warn">Report to HMRC</span>` : `<span class="pill">Nothing to report</span>`}
+          <label>Taxable income this year (£)
+            <input type="number" min="0" step="100" data-year="${Y.y}" id="inc-${Y.y}" value="${S.incomes[Y.y] ?? ''}" placeholder="e.g. 65000"></label>
+        </div>
+      </div>
+      <div class="year-body">
+        <div class="tablewrap"><table>
+          <thead><tr><th>Sold</th><th>Fund</th><th class="r">Proceeds</th><th class="r">Cost</th><th class="r">Gain</th></tr></thead>
+          <tbody>${rowsH}</tbody></table></div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <dl class="calc">
+            <dt>Gains</dt><dd>${fmt(Y.gross)}</dd>
+            <dt>Losses this year</dt><dd>${fmt(-Y.losses)}</dd>
+            ${Y.useBF ? `<dt>Losses brought forward used</dt><dd>${fmt(-Y.useBF)}</dd>` : ''}
+            <dt>Annual exempt amount (${fmt(Y.allowance).replace('.00', '')})</dt><dd>${fmt(-Y.aeaUsed)}</dd>
+            <dt class="total">Taxable gain</dt><dd class="total">${fmt(Y.taxable)}</dd>
+            ${Y.taxable > 0 ? `<dt>At lower rate</dt><dd>${fmt(Y.lowAmt)}</dd><dt>At higher rate</dt><dd>${fmt(Y.highAmt)}</dd>` : ''}
+            <dt class="total">Estimated CGT</dt><dd class="total">${fmt(Y.tax)}</dd>
+            ${Y.cfLoss ? `<dt>Loss to carry forward</dt><dd>${fmt(Y.cfLoss)}</dd>` : ''}
+          </dl>
+          ${Y.taxable > 0 && !Y.incomeKnown ? `<div class="flag">No income entered, so all of it is taxed at the higher rate. Add your income to see the real figure.</div>` : ''}
+          ${Y.split ? `<div class="lede" style="font-size:12.5px">This year spans the 30 Oct 2024 rate rise, so sales before and after are taxed at different rates.</div>` : ''}
+          <div class="lede" style="font-size:12.5px">${Y.mustReport ? `You need to report: ${Y.taxable > 0 ? 'there\'s tax to pay' : Y.proceeds > Y.threshold ? `total proceeds are over ${fmt(Y.threshold).replace('.00', '')}` : 'gains are above the allowance'}. Self Assessment deadline is 31 Jan ${Y.y + 2}.` : `Below the allowance and proceeds under ${fmt(Y.threshold).replace('.00', '')}.`}${Y.cfLoss ? ' Claim the loss on your return (within 4 years) to keep it.' : ''}</div>
+        </div>
+      </div></article>`;
+    }).join('');
+  }
+
+  let BYID = {}, FUNDS = [];
+
+  function cell(e) {
+    if (e.kind === 'buy') {
+      const parts = e.uses.map(u => `<div class="match">→ ${u.rule} with sale on ${dstr(u.date)}: ${fmtQ(u.qty)}</div>`);
+      if (e.toPool > EPS) parts.push(`<div class="match">→ added to pool: ${fmtQ(e.toPool)}</div>`);
+      return parts.join('');
+    }
+    const parts = e.matches.map(m => m.rule === 'S104 pool'
+      ? `<div class="match">← pool: ${fmtQ(m.qty)} @ ${fmt(m.cost / m.qty)} avg</div>`
+      : `<div class="match">← ${m.rule} buy on ${dstr(m.date)}: ${fmtQ(m.qty)} @ ${fmt(m.cost / m.qty)}</div>`);
+    if (e.missing) parts.push(`<div class="match" style="color:var(--warn)">no purchase found for ${fmtQ(e.missing)}</div>`);
+    if (e.gain != null) parts.push(`<div class="match ${e.gain >= 0 ? 'pos' : 'neg'}">Gain ${fmt(e.gain)}</div>`);
+    return parts.join('');
+  }
+
+  function timeline(F) {
+    const W = 900, L = 40, R = W - 40, base = 64, yB = 84, yS = 104;
+    const ts = F.ledger.map(e => e.date);
+    let t0 = Math.min(...ts), t1 = Math.max(...ts);
+    if (t1 - t0 < 60 * 864e5) {
+      t0 -= 30 * 864e5;
+      t1 += 30 * 864e5;
+    }
+    const pad = (t1 - t0) * 0.03;
+    t0 -= pad;
+    t1 += pad;
+    const x = t => L + (t - t0) / (t1 - t0) * (R - L);
+    const maxP = Math.max(1, ...F.ledger.map(e => e.poolAfter.qty));
+    const y = q => base - q / maxP * 44;
+    let d = `M${L},${base}`, cy = base;
+    F.ledger.forEach(e => {
+      const nx = x(e.date).toFixed(1), ny = y(e.poolAfter.qty);
+      d += ` L${nx},${cy.toFixed(1)} L${nx},${ny.toFixed(1)}`;
+      cy = ny;
+    });
+    d += ` L${R},${cy.toFixed(1)}`;
+    const area = d + ` L${R},${base} Z`;
+    let ticks = '';
+    const y0 = new Date(t0).getUTCFullYear(), y1 = new Date(t1).getUTCFullYear();
+    const step = Math.max(1, Math.ceil((y1 - y0 + 1) / 7));
+    for (let yr = y0; yr <= y1; yr += step) {
+      const t = Date.UTC(yr, 3, 6);
+      if (t < t0 || t > t1) continue;
+      ticks += `<line x1="${x(t)}" x2="${x(t)}" y1="16" y2="${yS + 8}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${x(t) + 3}" y="128" font-size="11" fill="var(--muted)" font-family="JetBrains Mono, monospace">6 Apr ${yr}</text>`;
+    }
+    let links = '', pools = '';
+    F.D.forEach(s => {
+      const sx = x(s.date);
+      s.matches.forEach(m => {
+        if (m.rule === 'S104 pool') {
+          pools += `<line x1="${sx}" x2="${sx}" y1="${yS - 6}" y2="${base}" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3 2"/>`;
+        } else {
+          const bx = x(m.date);
+          links += `<path d="M${sx},${yS} C${sx},${yS + 16} ${bx},${yB + 20} ${bx},${yB}" fill="none" stroke="var(--warn)" stroke-width="1.6"/>`;
+        }
+      });
+    });
+    const marks = F.ledger.map(e => {
+      const cx = x(e.date);
+      return e.kind === 'buy'
+        ? `<circle data-id="${e.id}" cx="${cx}" cy="${yB}" r="6" fill="var(--good)" stroke="var(--surface)" stroke-width="1.5" style="cursor:pointer"><title>Buy ${dstr(e.date)}: ${fmtQ(e.qty)} units</title></circle>`
+        : `<rect data-id="${e.id}" x="${cx - 6}" y="${yS - 6}" width="12" height="12" fill="${e.missing ? 'var(--warn)' : 'var(--bad)'}" stroke="var(--surface)" stroke-width="1.5" style="cursor:pointer"><title>Sell ${dstr(e.date)}: ${fmtQ(e.qty)} units</title></rect>`;
+    }).join('');
+    return `<svg viewBox="0 0 ${W} 134" role="img" aria-label="Timeline of buys, sells and pool size for ${esc(F.ticker)}">
+    ${ticks}
+    <text x="${L}" y="12" font-size="11" fill="var(--muted)">Pool units (peak ${fmtQ(maxP)})</text>
+    <path d="${area}" fill="var(--accent-soft)"/><path d="${d}" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+    <line x1="${L}" x2="${R}" y1="${base}" y2="${base}" stroke="var(--line)"/>
+    ${pools}${links}${marks}
+    <text x="4" y="${yB + 4}" font-size="11" fill="var(--muted)">Buy</text>
+    <text x="4" y="${yS + 4}" font-size="11" fill="var(--muted)">Sell</text>
+  </svg>`;
+  }
+
+  function renderFunds(funds) {
+    if (!funds.length) {
+      $('funds').innerHTML = `<div class="panel empty">No transactions yet.</div>`;
+      return;
+    }
+    $('funds').innerHTML = funds.map((F, fi) => {
+      const held = F.pool.qty, avg = held > EPS ? F.pool.cost / held : 0;
+      const rows = F.ledger.map(e => {
+        const value = e.kind === 'buy' ? e.cost : e.proceeds, px = value / e.qty, pa = e.poolAfter;
+        return `<tr data-id="${e.id}">
+        <td class="mono" style="white-space:nowrap">${dstr(e.date)}${e.n > 1 ? `<div class="match">${e.n} trades combined</div>` : ''}</td>
+        <td><span class="tag ${e.kind}">${e.kind === 'buy' ? 'Buy' : 'Sell'}</span></td>
+        <td class="r num">${fmtQ(e.qty)}</td>
+        <td class="r num">${fmt(px)}</td>
+        <td class="r num">${fmt(value)}</td>
+        <td style="min-width:220px">${cell(e)}</td>
+        <td class="r num">${fmtQ(pa.qty)}</td>
+        <td class="r num">${fmt(pa.cost)}</td>
+        <td class="r num">${pa.qty > EPS ? fmt(pa.cost / pa.qty) : '—'}</td></tr>`;
+      }).join('');
+      return `<details class="fund-card" id="fund-${fi}" open>
+      <summary><h2>${esc(F.ticker)}</h2><span class="holding">${F.A.length} buy days · ${F.D.length} sell days · ${fmtQ(held)} units left in pool</span></summary>
+      <div class="fund-body">
+        <div class="timeline">${timeline(F)}</div>
+        <div class="legend">
+          <span><i class="sw" style="background:var(--good);border-radius:50%"></i>Buy</span>
+          <span><i class="sw" style="background:var(--bad)"></i>Sell</span>
+          <span><i class="sw" style="background:var(--warn);height:2px"></i>Same-day or 30-day match</span>
+          <span><i class="sw" style="border-top:2px dashed var(--muted);height:0"></i>Taken from pool</span>
+          <span><i class="sw" style="background:var(--hl-direct)"></i>Directly matched</span>
+          <span><i class="sw" style="background:var(--hl-pool);outline:1px solid var(--line)"></i>Fed the pool used</span>
+        </div>
+        <div class="tablewrap"><table class="ledger">
+          <thead><tr><th>Date</th><th></th><th class="r">Units</th><th class="r">Price</th><th class="r">Cost / proceeds</th><th>Matched with</th><th class="r">Pool units</th><th class="r">Pool cost</th><th class="r">Avg cost</th></tr></thead>
+          <tbody>${rows}</tbody></table></div>
+        <div class="recon"><span>Still held: <b>${fmtQ(held)}</b> units</span><span>Pool cost: <b>${fmt(F.pool.cost)}</b></span><span>Average cost: <b>${held > EPS ? fmt(avg) : '—'}</b></span><span class="lede">Check the units against your platform's current holding. If they differ, a trade is missing.</span></div>
+      </div></details>`;
+    }).join('');
+  }
+
+  function related(o) {
+    const F = FUNDS[o.fid], direct = new Set(), pool = new Set();
+    if (o.kind === 'sell') {
+      o.matches.forEach(m => m.id && direct.add(m.id));
+      if (o.matches.some(m => m.rule === 'S104 pool')) F.A.forEach(a => {
+        if (a.toPool > EPS && a.date < o.date) pool.add(a.id);
+      });
+    } else {
+      o.uses.forEach(u => direct.add(u.id));
+      if (o.toPool > EPS) F.D.forEach(d => {
+        if (d.date > o.date && d.matches.some(m => m.rule === 'S104 pool')) pool.add(d.id);
+      });
+    }
+    return { direct, pool };
+  }
+
+  let SEL = null;
+
+  function select(id) {
+    document.querySelectorAll('.fund-card').forEach(c => c.classList.remove('has-sel'));
+    document.querySelectorAll('[data-id]').forEach(el => el.classList.remove('sel', 'rel-direct', 'rel-pool'));
+    if (!id || id === SEL || !BYID[id]) {
+      SEL = null;
+      return;
+    }
+    SEL = id;
+    const o = BYID[id], { direct, pool } = related(o);
+    const card = $('fund-' + o.fid);
+    card.classList.add('has-sel');
+    card.querySelectorAll('[data-id]').forEach(el => {
+      const i = el.dataset.id;
+      if (i === id) el.classList.add('sel'); else if (direct.has(i)) el.classList.add('rel-direct'); else if (pool.has(i)) el.classList.add('rel-pool');
+    });
+  }
+
+  $('funds').addEventListener('click', e => {
+    if (e.target.closest('summary')) return;
+    const t = e.target.closest('[data-id]');
+    if (t) select(t.dataset.id);
+  });
+  $('years').addEventListener('click', e => {
+    const b = e.target.closest('[data-jump]');
+    if (!b) return;
+    const o = BYID[b.dataset.jump];
+    if (!o) return;
+    const card = $('fund-' + o.fid);
+    card.open = true;
+    SEL = null;
+    select(o.id);
+    card.querySelector(`tr[data-id="${o.id}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  $('calc').addEventListener('click', () => {
+    S.csv = $('csv').value;
+    save();
+    render();
+  });
+  $('reset').addEventListener('click', () => {
+    $('csv').value = EXAMPLE;
+    S.csv = EXAMPLE;
+    save();
+    render();
+  });
+  $('bf').addEventListener('change', e => {
+    S.bf = e.target.value;
+    save();
+    render();
+  });
+  $('years').addEventListener('change', e => {
+    const y = e.target.dataset.year;
+    if (!y) return;
+    S.incomes[y] = e.target.value;
+    save();
+    render();
+    const el = $('inc-' + y);
+    if (el) el.focus();
+  });
+  render();
+</script>
+
+</body>
+</html>
