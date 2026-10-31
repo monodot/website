@@ -1,265 +1,830 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<!--
+  Pension Calculator
+  Copyright (c) 2026 Tom Donohue
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html lang="en-GB">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pension Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-sans,system-ui,sans-serif);font-size:15px;color:var(--color-text-primary,#111);background:transparent;padding:1rem}
-h2{font-size:18px;font-weight:500;margin-bottom:1rem}
-h3{font-size:15px;font-weight:500;margin-bottom:.75rem}
-.tabs{display:flex;gap:0;border-bottom:0.5px solid var(--color-border-tertiary,#ccc);margin-bottom:1.5rem;flex-wrap:wrap}
-.tab{padding:8px 14px;font-size:13px;cursor:pointer;border:none;background:transparent;color:var(--color-text-secondary,#666);border-bottom:2px solid transparent;margin-bottom:-1px}
-.tab.active{color:var(--color-text-primary,#111);border-bottom:2px solid var(--color-text-primary,#111)}
-.panel{display:none}.panel.active{display:block}
-.grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:1.25rem}
-.grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.25rem}
-.field{display:flex;flex-direction:column;gap:4px}
-label{font-size:13px;color:var(--color-text-secondary,#666)}
-input[type=number],select{width:100%;padding:6px 8px;border:0.5px solid var(--color-border-tertiary,#ccc);border-radius:6px;font-size:14px;background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111)}
-input[type=range]{width:100%}
-.slider-row{display:flex;align-items:center;gap:8px}
-.slider-row input[type=range]{flex:1}
-.slider-val{font-size:13px;font-weight:500;min-width:45px;text-align:right;color:var(--color-text-primary,#111)}
-.card{background:var(--color-background-secondary,#f5f5f3);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem}
-.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.25rem}
-.metric{background:var(--color-background-secondary,#f5f5f3);border-radius:8px;padding:.75rem 1rem}
-.metric-label{font-size:12px;color:var(--color-text-secondary,#666);margin-bottom:4px}
-.metric-val{font-size:19px;font-weight:500}
-.metric-sub{font-size:11px;color:var(--color-text-secondary,#666);margin-top:2px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:8px 10px;font-weight:500;border-bottom:0.5px solid var(--color-border-tertiary,#ccc);font-size:12px;color:var(--color-text-secondary,#666)}
-td{padding:8px 10px;border-bottom:0.5px solid var(--color-border-tertiary,#ccc)}
-td.num{text-align:right;font-variant-numeric:tabular-nums}
-tr:last-child td{border-bottom:none}
-.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:4px;margin-left:6px}
-.badge-g{background:#eaf3de;color:#27500a}
-.badge-a{background:#faeeda;color:#633806}
-.badge-r{background:#fcebeb;color:#791f1f}
-.badge-b{background:#e6f1fb;color:#0c447c}
-.assumption-note{font-size:12px;color:var(--color-text-secondary,#666);margin-top:.5rem;line-height:1.6}
-.chart-wrap{position:relative;width:100%;height:280px;margin:1rem 0}
-.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
-@media(max-width:520px){.compare-grid{grid-template-columns:1fr}}
-.compare-card{background:var(--color-background-primary,#fff);border:0.5px solid var(--color-border-tertiary,#ccc);border-radius:10px;padding:1rem}
-.compare-card h4{font-size:14px;font-weight:500;margin-bottom:.5rem}
-.pros-cons{font-size:13px;color:var(--color-text-secondary,#666);line-height:1.8}
-.pro::before{content:"+ ";color:#3b6d11}
-.con::before{content:"− ";color:#a32d2d}
-.section-sep{border:none;border-top:0.5px solid var(--color-border-tertiary,#ccc);margin:1.25rem 0}
-.result-box{border-radius:8px;padding:.75rem 1rem;margin-bottom:.75rem;font-size:14px;line-height:1.7}
-.result-surplus{background:#eaf3de;color:#27500a}
-.result-shortfall{background:#fcebeb;color:#791f1f}
-.result-neutral{background:#e6f1fb;color:#0c447c}
-.milestone-row-on{background:var(--color-background-secondary,#f5f5f3)}
-.btn{padding:6px 14px;font-size:13px;border:0.5px solid var(--color-border-tertiary,#ccc);border-radius:6px;background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);cursor:pointer}
-.btn:hover{background:var(--color-background-secondary,#f5f5f3)}
-.btn:disabled{opacity:.6;cursor:default}
-.budget-input{width:110px;text-align:right;padding:5px 8px;border:0.5px solid var(--color-border-tertiary,#ccc);border-radius:6px;font-size:13px;background:var(--color-background-primary,#fff);color:var(--color-text-primary,#111);font-variant-numeric:tabular-nums}
-.copy-row{display:flex;gap:8px;flex-wrap:wrap}
+    /* Layout: header, tab strip, then one panel per tool — same tokens as the CGT calculator */
+    :root {
+        --bg: #f3f5f3;
+        --surface: #ffffff;
+        --ink: #18211d;
+        --muted: #5d6b64;
+        --line: #d8dfdb;
+        --accent: #1d5e4b;
+        --accent-soft: #e3efe9;
+        --warn: #9a5b00;
+        --warn-soft: #fbf0dc;
+        --bad: #a3302a;
+        --bad-soft: #f8e5e3;
+        --good: #1d6b3f;
+        --f-display: "Schibsted Grotesk", system-ui, sans-serif;
+        --f-body: "Schibsted Grotesk", system-ui, sans-serif;
+        --f-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+        color-scheme: light
+    }
+
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --bg: #121715;
+            --surface: #1a211e;
+            --ink: #e4ebe7;
+            --muted: #97a69f;
+            --line: #2d3833;
+            --accent: #6cc3a3;
+            --accent-soft: #1f322b;
+            --warn: #e7b25c;
+            --warn-soft: #352a17;
+            --bad: #ef8a80;
+            --bad-soft: #3a201d;
+            --good: #7fd19d;
+            color-scheme: dark
+        }
+    }
+
+    :root[data-theme="dark"] {
+        --bg: #121715;
+        --surface: #1a211e;
+        --ink: #e4ebe7;
+        --muted: #97a69f;
+        --line: #2d3833;
+        --accent: #6cc3a3;
+        --accent-soft: #1f322b;
+        --warn: #e7b25c;
+        --warn-soft: #352a17;
+        --bad: #ef8a80;
+        --bad-soft: #3a201d;
+        --good: #7fd19d;
+        color-scheme: dark
+    }
+
+    * {
+        box-sizing: border-box
+    }
+
+    body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--f-body);
+        font-size: 15px;
+        line-height: 1.5;
+        padding-left: max(16px, env(safe-area-inset-left, 0px));
+        padding-right: max(16px, env(safe-area-inset-right, 0px));
+        padding-block: 32px 64px
+    }
+
+    .wrap {
+        max-width: 960px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px
+    }
+
+    h1 {
+        font-family: var(--f-display);
+        font-weight: 700;
+        font-size: 28px;
+        letter-spacing: -.01em;
+        margin: 0;
+        text-wrap: balance
+    }
+
+    h2 {
+        font-family: var(--f-display);
+        font-size: 19px;
+        margin: 0;
+        font-weight: 600
+    }
+
+    h3 {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: .07em;
+        color: var(--muted);
+        margin: 0;
+        font-weight: 600
+    }
+
+    h4 {
+        font-size: 15px;
+        font-weight: 600;
+        margin: 0 0 6px
+    }
+
+    p {
+        margin: 0;
+        max-width: 68ch
+    }
+
+    .lede {
+        color: var(--muted)
+    }
+
+    .num, .mono {
+        font-family: var(--f-mono);
+        font-variant-numeric: tabular-nums
+    }
+
+    /* Tabs */
+    .tabs {
+        display: flex;
+        gap: 4px;
+        border-bottom: 1px solid var(--line);
+        overflow-x: auto;
+        scrollbar-width: none
+    }
+
+    .tab {
+        all: unset;
+        cursor: pointer;
+        padding: 8px 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--muted);
+        white-space: nowrap;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px
+    }
+
+    .tab:hover {
+        color: var(--ink)
+    }
+
+    .tab.active {
+        color: var(--accent);
+        border-bottom-color: var(--accent)
+    }
+
+    .tab:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: -2px
+    }
+
+    .panel {
+        display: none;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 20px;
+        flex-direction: column;
+        gap: 18px;
+        min-width: 0
+    }
+
+    .panel.active {
+        display: flex
+    }
+
+    .panel-head {
+        display: flex;
+        flex-direction: column;
+        gap: 4px
+    }
+
+    .section {
+        border-top: 1px solid var(--line);
+        padding-top: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px
+    }
+
+    /* Inputs */
+    .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 14px 16px
+    }
+
+    .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 14px 16px
+    }
+
+    .field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px
+    }
+
+    label {
+        font-size: 13px;
+        color: var(--muted)
+    }
+
+    input[type=number], select {
+        width: 100%;
+        font-size: 14px;
+        padding: 7px 10px;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: var(--bg);
+        color: var(--ink)
+    }
+
+    input[type=number] {
+        font-family: var(--f-mono)
+    }
+
+    select {
+        font-family: var(--f-body)
+    }
+
+    input:focus, select:focus, button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 1px
+    }
+
+    input[type=range] {
+        width: 100%;
+        accent-color: var(--accent)
+    }
+
+    .slider-row {
+        display: flex;
+        align-items: center;
+        gap: 10px
+    }
+
+    .slider-row input[type=range] {
+        flex: 1
+    }
+
+    .slider-val {
+        font-family: var(--f-mono);
+        font-size: 14px;
+        font-weight: 500;
+        min-width: 56px;
+        text-align: right;
+        color: var(--ink)
+    }
+
+    .budget-input {
+        width: 110px !important;
+        text-align: right;
+        padding: 5px 8px !important;
+        font-size: 13px !important
+    }
+
+    button {
+        font: inherit;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 8px 16px;
+        border-radius: 4px;
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: var(--surface);
+        cursor: pointer
+    }
+
+    button.ghost {
+        background: transparent;
+        color: var(--accent)
+    }
+
+    button.ghost:hover {
+        background: var(--accent-soft)
+    }
+
+    button:disabled {
+        opacity: .6;
+        cursor: default
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center
+    }
+
+    /* Key figures: same look as the CGT summary strip */
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow: hidden
+    }
+
+    .metric {
+        background: var(--surface);
+        padding: 14px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px
+    }
+
+    .metric-label {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: .06em
+    }
+
+    .metric-val {
+        font-family: var(--f-mono);
+        font-size: 20px;
+        font-weight: 500
+    }
+
+    .metric-sub {
+        font-size: 12px;
+        color: var(--muted)
+    }
+
+    /* Tables */
+    .tablewrap {
+        overflow-x: auto
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 13px
+    }
+
+    th {
+        text-align: left;
+        font-weight: 600;
+        color: var(--muted);
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--line);
+        white-space: nowrap
+    }
+
+    th.r, td.num {
+        text-align: right
+    }
+
+    td {
+        padding: 7px 8px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle
+    }
+
+    td.num {
+        font-family: var(--f-mono);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap
+    }
+
+    tr:last-child td {
+        border-bottom: none
+    }
+
+    tr.group td {
+        padding-top: 16px;
+        font-size: 11.5px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: var(--muted)
+    }
+
+    tr.group .group-total {
+        float: right;
+        font-family: var(--f-mono);
+        letter-spacing: 0
+    }
+
+    .badge {
+        display: inline-block;
+        font-family: var(--f-body);
+        font-size: 11px;
+        font-weight: 600;
+        padding: 1px 8px;
+        border-radius: 999px;
+        margin-left: 6px;
+        vertical-align: 1px
+    }
+
+    .badge-g {
+        background: var(--accent-soft);
+        color: var(--good)
+    }
+
+    .badge-a {
+        background: var(--warn-soft);
+        color: var(--warn)
+    }
+
+    .badge-r {
+        background: var(--bad-soft);
+        color: var(--bad)
+    }
+
+    .badge-b {
+        background: var(--accent-soft);
+        color: var(--accent)
+    }
+
+    /* Notes and results */
+    .assumption-note {
+        font-size: 13px;
+        color: var(--muted);
+        max-width: 72ch
+    }
+
+    .result-box {
+        border-radius: 4px;
+        padding: 10px 12px;
+        font-size: 14px
+    }
+
+    .result-box + .result-box {
+        margin-top: 8px
+    }
+
+    .result-surplus {
+        background: var(--accent-soft);
+        color: var(--good)
+    }
+
+    .result-shortfall {
+        background: var(--bad-soft);
+        color: var(--bad)
+    }
+
+    .result-neutral {
+        background: var(--warn-soft);
+        color: var(--warn)
+    }
+
+    #save-result {
+        display: flex;
+        flex-direction: column;
+        gap: 12px
+    }
+
+    /* Charts */
+    .chart-wrap {
+        position: relative;
+        width: 100%;
+        height: 280px
+    }
+
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 18px;
+        font-size: 12px;
+        color: var(--muted)
+    }
+
+    .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px
+    }
+
+    .sw {
+        width: 14px;
+        height: 0;
+        display: inline-block;
+        border-top: 2px solid
+    }
+
+    .sw.dash {
+        border-top-style: dashed
+    }
+
+    .sw.dot {
+        border-top-style: dotted
+    }
+
+    /* Annuity vs drawdown */
+    .compare-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px
+    }
+
+    @media (max-width: 560px) {
+        .compare-grid {
+            grid-template-columns: 1fr
+        }
+    }
+
+    .compare-card {
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 14px 16px;
+        background: var(--bg)
+    }
+
+    .pros-cons {
+        font-size: 13.5px;
+        color: var(--muted);
+        line-height: 1.8
+    }
+
+    .pro::before {
+        content: "+ ";
+        color: var(--good);
+        font-weight: 600
+    }
+
+    .con::before {
+        content: "− ";
+        color: var(--bad);
+        font-weight: 600
+    }
+
+    /* Assumptions */
+    ul.rules {
+        margin: 0;
+        padding-left: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        max-width: 72ch;
+        color: var(--muted);
+        font-size: 14px
+    }
+
+    ul.rules b, .assumption-note strong {
+        color: var(--ink);
+        font-weight: 600
+    }
+
+    .rates {
+        max-width: 360px
+    }
 </style>
 </head>
 <body>
 
-<div class="tabs">
-  <button class="tab active" onclick="showTab('budget')">Budget</button>
-  <button class="tab" onclick="showTab('save')">How much to save</button>
-  <button class="tab" onclick="showTab('drawdown')">Drawdown</button>
-  <button class="tab" onclick="showTab('compare')">Annuity vs drawdown</button>
-  <button class="tab" onclick="showTab('income')">Income matrix</button>
-  <button class="tab" onclick="showTab('assumptions')">Assumptions</button>
-</div>
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>Pension Calculator</h1>
+    <p class="lede">Work out what you want to spend in retirement, how much you need to save, how long a pot might last,
+      and how an annuity compares with drawdown. All figures in pounds, in today's money.</p>
+    <p>Free to use. For information only. Your inputs stay in your browser and are saved in the page address, so you can
+      bookmark or share a scenario.</p>
+  </header>
 
-<!-- TAB 1: Budget builder -->
-<div id="tab-budget" class="panel active">
-  <h2>What do you want to spend in retirement?</h2>
-  <p class="assumption-note" style="margin-bottom:1rem">Build up your desired annual spending category by category. Adjust any figure — subtotals, the grand total and the pot needed update automatically. Once you're happy with the total, copy it into the other tabs.</p>
-  <div class="grid-2">
-    <div class="field"><label>When copying, gross up for income tax?</label>
-      <select id="b-tax" onchange="renderBudget()">
-        <option value="0">No — copy spending as-is</option>
-        <option value="1">Yes — basic-rate payer (20%)</option>
-      </select>
-    </div>
-  </div>
-  <div class="card" id="budget-table"></div>
-  <div id="budget-metrics"></div>
-  <div class="card">
-    <h3>Use this total in other tabs</h3>
-    <div class="copy-row" id="budget-copy-row">
-      <button class="btn" onclick="copyBudgetTo('d-withdraw',renderDrawdown,this)">Drawdown → annual withdrawal</button>
-      <button class="btn" onclick="copyBudgetTo('c-income',renderCompare,this)">Annuity vs drawdown → income needed</button>
-      <button class="btn" onclick="copyBudgetTo('s-income',renderSave,this)">How much to save → target income</button>
-    </div>
-    <p class="assumption-note" id="budget-copy-note" style="margin-top:.75rem"></p>
-  </div>
-  <p class="assumption-note">Other tabs work in gross income, while this budget is what you actually want to spend (net of tax). Choose to gross up above if you want the copied figure to cover income tax — the estimate assumes a full personal allowance and basic-rate tax on everything above it.</p>
-</div>
+  <nav class="tabs">
+    <button class="tab active" onclick="showTab('budget')">Budget</button>
+    <button class="tab" onclick="showTab('save')">How much to save</button>
+    <button class="tab" onclick="showTab('drawdown')">Drawdown</button>
+    <button class="tab" onclick="showTab('compare')">Annuity vs drawdown</button>
+    <button class="tab" onclick="showTab('income')">Income matrix</button>
+    <button class="tab" onclick="showTab('assumptions')">Assumptions</button>
+  </nav>
 
-<!-- TAB 2: How much to save -->
-<div id="tab-save" class="panel">
-  <h2>How much do I need to save?</h2>
-  <div class="grid-2">
-    <div class="field"><label>Current age</label><input type="number" id="s-age" value="38" min="18" max="70" onchange="renderSave()"></div>
-    <div class="field"><label>Target retirement age</label><input type="number" id="s-ret" value="65" min="55" max="75" onchange="renderSave()"></div>
-  </div>
-  <div class="grid-2">
-    <div class="field"><label>Current pension pot (£)</label><input type="number" id="s-pot" value="50000" step="5000" onchange="renderSave()"></div>
-    <div class="field"><label>Target annual income in retirement (£)</label><input type="number" id="s-income" value="35000" step="1000" onchange="renderSave()"></div>
-  </div>
-  <div class="grid-2">
-    <div class="field"><label>Include state pension from 67?</label>
-      <select id="s-state" onchange="renderSave()"><option value="1">Yes</option><option value="0">No</option></select>
+  <!-- TAB 1: Budget builder -->
+  <section id="tab-budget" class="panel active">
+    <div class="panel-head">
+      <h2>What do you want to spend in retirement?</h2>
+      <p class="assumption-note">Build up your desired annual spending category by category. Adjust any figure, and the
+        subtotals, grand total and pot needed update automatically. Once you're happy with the total, copy it into the
+        other tabs.</p>
     </div>
-    <div class="field"><label>Strategy</label>
-      <select id="s-strategy" onchange="renderSave()">
-        <option value="drawdown">Drawdown (4% rule)</option>
-        <option value="annuity">Annuity</option>
-      </select>
+    <div class="tablewrap" id="budget-table"></div>
+    <div id="budget-metrics"></div>
+    <div class="section">
+      <h3>Use this total in other tabs</h3>
+      <div class="grid-2">
+        <div class="field"><label for="b-tax">When copying, gross up for income tax?</label>
+          <select id="b-tax" onchange="renderBudget()">
+            <option value="0">No — copy spending as-is</option>
+            <option value="1">Yes — basic-rate payer (20%)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" id="budget-copy-row">
+        <button class="ghost" onclick="copyBudgetTo('d-withdraw',renderDrawdown,this)">Drawdown → annual withdrawal</button>
+        <button class="ghost" onclick="copyBudgetTo('c-income',renderCompare,this)">Annuity vs drawdown → income needed</button>
+        <button class="ghost" onclick="copyBudgetTo('s-income',renderSave,this)">How much to save → target income</button>
+      </div>
+      <p class="assumption-note" id="budget-copy-note"></p>
+      <p class="assumption-note">Other tabs work in gross income, while this budget is what you actually want to spend
+        (net of tax). Choose to gross up above if you want the copied figure to cover income tax. The estimate assumes a
+        full personal allowance and basic-rate tax on everything above it.</p>
     </div>
-  </div>
-  <div class="field" style="margin-bottom:1.25rem">
-    <label>Pre-retirement investment growth (%/yr, real)</label>
-    <div class="slider-row">
-      <input type="range" id="s-growth" min="1" max="8" step="0.5" value="4" oninput="document.getElementById('s-growth-val').textContent=this.value+'%';renderSave()">
-      <span class="slider-val" id="s-growth-val">4%</span>
+  </section>
+
+  <!-- TAB 2: How much to save -->
+  <section id="tab-save" class="panel">
+    <div class="panel-head">
+      <h2>How much do I need to save?</h2>
     </div>
-  </div>
-
-  <div id="save-result"></div>
-
-  <div class="field" style="margin-bottom:.5rem">
-    <label>Monthly contribution (yours + employer, £) — adjust to see impact</label>
-    <div class="slider-row">
-      <input type="range" id="s-contrib" min="0" max="5000" step="50" value="500" oninput="document.getElementById('s-contrib-val').textContent='£'+this.value;renderSave()">
-      <span class="slider-val" id="s-contrib-val">£500</span>
-    </div>
-  </div>
-
-  <div class="chart-wrap"><canvas id="save-chart"></canvas></div>
-
-  <div id="save-milestones" style="margin-top:.5rem"></div>
-  <p class="assumption-note" style="margin-top:.75rem">All figures in today's money (real terms). Growth rate is after inflation. Tax relief on contributions not modelled explicitly — but contributing to a pension is effectively a ~25% boost for basic rate taxpayers (HMRC tops up your contribution).</p>
-</div>
-
-<!-- TAB 3: Drawdown simulator -->
-<div id="tab-drawdown" class="panel">
-  <h2>Drawdown simulator</h2>
-  <div class="grid-2">
-    <div class="field"><label>Starting pot (£)</label><input type="number" id="d-pot" value="500000" step="10000" onchange="renderDrawdown()"></div>
-    <div class="field"><label>Retirement age</label><input type="number" id="d-age" value="65" min="55" max="75" onchange="renderDrawdown()"></div>
-  </div>
-  <div class="grid-2">
-    <div class="field"><label>Annual withdrawal (£)</label><input type="number" id="d-withdraw" value="30000" step="1000" onchange="renderDrawdown()"></div>
-    <div class="field"><label>Include state pension from 67?</label>
-      <select id="d-state" onchange="renderDrawdown()"><option value="1">Yes</option><option value="0">No</option></select>
-    </div>
-  </div>
-  <div class="field" style="margin-bottom:1.25rem">
-    <label>Investment growth in retirement (%/yr, real)</label>
-    <div class="slider-row">
-      <input type="range" id="d-growth" min="0" max="7" step="0.5" value="3.5" oninput="document.getElementById('d-growth-val').textContent=this.value+'%';renderDrawdown()">
-      <span class="slider-val" id="d-growth-val">3.5%</span>
-    </div>
-  </div>
-  <div class="metric-grid" id="drawdown-metrics"></div>
-  <div class="chart-wrap"><canvas id="drawdown-chart"></canvas></div>
-  <p class="assumption-note">Chart shows pot value each year until depleted or age 100. State pension reduces withdrawals from the pot from age 67.</p>
-</div>
-
-<!-- TAB 4: Annuity vs drawdown -->
-<div id="tab-compare" class="panel">
-  <h2>Annuity vs drawdown</h2>
-  <div class="grid-3">
-    <div class="field"><label>Pot size (£)</label><input type="number" id="c-pot" value="500000" step="10000" onchange="renderCompare()"></div>
-    <div class="field"><label>Retirement age</label><input type="number" id="c-age" value="65" min="55" max="75" onchange="renderCompare()"></div>
-    <div class="field"><label>Annual income needed (£)</label><input type="number" id="c-income" value="30000" step="1000" onchange="renderCompare()"></div>
-  </div>
-  <div id="compare-metrics" class="metric-grid"></div>
-  <div class="compare-grid">
-    <div class="compare-card">
-      <h4>Drawdown</h4>
-      <div class="pros-cons">
-        <div class="pro">Pot stays invested, can grow</div>
-        <div class="pro">Flexible — change withdrawals</div>
-        <div class="pro">Unused pot passes to heirs</div>
-        <div class="pro">Can top up with part-time work</div>
-        <div class="con">Pot can run out if you live long</div>
-        <div class="con">Investment risk — pot can fall</div>
-        <div class="con">Requires active management</div>
+    <div class="grid-2">
+      <div class="field"><label for="s-age">Current age</label><input type="number" id="s-age" value="38" min="18" max="70" onchange="renderSave()"></div>
+      <div class="field"><label for="s-ret">Target retirement age</label><input type="number" id="s-ret" value="65" min="55" max="75" onchange="renderSave()"></div>
+      <div class="field"><label for="s-pot">Current pension pot (£)</label><input type="number" id="s-pot" value="50000" step="5000" onchange="renderSave()"></div>
+      <div class="field"><label for="s-income">Target annual income in retirement (£)</label><input type="number" id="s-income" value="35000" step="1000" onchange="renderSave()"></div>
+      <div class="field"><label for="s-state">Include state pension from 67?</label>
+        <select id="s-state" onchange="renderSave()"><option value="1">Yes</option><option value="0">No</option></select>
+      </div>
+      <div class="field"><label for="s-strategy">Strategy</label>
+        <select id="s-strategy" onchange="renderSave()">
+          <option value="drawdown">Drawdown (4% rule)</option>
+          <option value="annuity">Annuity</option>
+        </select>
       </div>
     </div>
-    <div class="compare-card">
-      <h4>Annuity</h4>
-      <div class="pros-cons">
-        <div class="pro">Guaranteed income for life</div>
-        <div class="pro">No investment risk</div>
-        <div class="pro">Simple — set and forget</div>
-        <div class="pro">Can include partner's pension</div>
-        <div class="con">No flexibility once purchased</div>
-        <div class="con">Nothing left for heirs</div>
-        <div class="con">Poor value if you die early</div>
-        <div class="con">Fixed income erodes with inflation</div>
-      </div>
-    </div>
-  </div>
-  <div style="display:flex;gap:16px;margin-bottom:4px;font-size:12px;color:var(--color-text-secondary)">
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#1d9e75;display:inline-block"></span>Total received — annuity</span>
-    <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#185fa5;display:inline-block"></span>Cumulative drawdown cost</span>
-  </div>
-  <div class="chart-wrap" style="height:240px"><canvas id="compare-chart"></canvas></div>
-  <p id="compare-note" class="assumption-note"></p>
-</div>
-
-<!-- TAB 5: Income matrix -->
-<div id="tab-income" class="panel">
-  <h2>Annual income from different pot sizes</h2>
-  <div class="grid-2">
     <div class="field">
-      <label>Include state pension from age 67?</label>
-      <select id="state-pension" onchange="renderMatrix()">
-        <option value="1">Yes — add ~£11,502/yr</option>
-        <option value="0">No</option>
-      </select>
+      <label for="s-growth">Pre-retirement investment growth (%/yr, real)</label>
+      <div class="slider-row">
+        <input type="range" id="s-growth" min="1" max="8" step="0.5" value="4" oninput="document.getElementById('s-growth-val').textContent=this.value+'%';renderSave()">
+        <span class="slider-val" id="s-growth-val">4%</span>
+      </div>
     </div>
-  </div>
-  <div class="card">
-    <div id="matrix-table"></div>
-  </div>
-  <p class="assumption-note">Income shown as sustainable annual withdrawal using the 4% drawdown rule. Annuity figures use estimated UK market rates (see Assumptions tab). State pension added from age 67 where applicable. All figures gross (before tax).</p>
-</div>
 
-<!-- TAB 6: Assumptions -->
-<div id="tab-assumptions" class="panel">
-  <h2>Assumptions & methodology</h2>
-  <div class="card">
-    <h3>Drawdown income (income matrix)</h3>
-    <p class="assumption-note">Uses the <strong>4% rule</strong> — an evidence-based guideline suggesting you can withdraw 4% of your pot per year with a high probability of not running out over a 30-year retirement.</p>
-    <hr class="section-sep">
-    <h3>Annuity rates (estimated, 2025)</h3>
-    <table>
-      <tr><th>Retirement age</th><th>Rate (%/yr of pot)</th></tr>
-      <tr><td>55</td><td class="num">4.2%</td></tr>
-      <tr><td>60</td><td class="num">5.0%</td></tr>
-      <tr><td>65</td><td class="num">6.2%</td></tr>
-      <tr><td>70</td><td class="num">7.8%</td></tr>
-    </table>
-    <p class="assumption-note" style="margin-top:.75rem">Single-life, level (non-inflation-linked) annuity. Inflation-linked annuities start ~30–40% lower. Enhanced rates available for smokers or those with health conditions.</p>
-    <hr class="section-sep">
-    <h3>State pension</h3>
-    <p class="assumption-note">Full new State Pension is <strong>£11,502/yr</strong> (2024/25). Qualifying age is 67. Requires 35 qualifying NI years.</p>
-    <hr class="section-sep">
-    <h3>Tax</h3>
-    <p class="assumption-note">All figures are <strong>gross (before tax)</strong>. 25% of your pot can typically be taken tax-free. Withdrawals above £12,570/yr are subject to income tax. Consult an IFA for personalised tax planning.</p>
-    <hr class="section-sep">
-    <h3>Inflation</h3>
-    <p class="assumption-note">All figures are in today's money (real terms). Growth rates are after inflation.</p>
-    <hr class="section-sep">
-    <h3>Retirement budget (Budget tab)</h3>
-    <p class="assumption-note">Default amounts are typical annual figures for a retired household in the UK, in today's money — they are a starting point only; edit every line to match your plans. Items marked <strong>essential</strong> (housing, bills, groceries, transport, health) are the floor you can fall back to; everything else (holidays, leisure, eating out, gifts) is discretionary. The "pot needed" figure uses the 4% drawdown rule against your total budget.</p>
-  </div>
-  <p class="assumption-note" style="margin-top:1rem">Your inputs are saved in the page address — bookmark or copy the link to keep your scenario, or send it to someone to share it. This tool is for illustrative purposes only and does not constitute financial advice. Consult a regulated IFA before making pension decisions.</p>
+    <div id="save-result"></div>
+
+    <div class="field">
+      <label for="s-contrib">Monthly contribution (yours + employer, £). Adjust to see the impact.</label>
+      <div class="slider-row">
+        <input type="range" id="s-contrib" min="0" max="5000" step="50" value="500" oninput="document.getElementById('s-contrib-val').textContent='£'+this.value;renderSave()">
+        <span class="slider-val" id="s-contrib-val">£500</span>
+      </div>
+    </div>
+
+    <div id="save-milestones"></div>
+    <div class="chart-wrap"><canvas id="save-chart"></canvas></div>
+    <p class="assumption-note">All figures in today's money (real terms). Growth rate is after inflation. Tax relief on
+      contributions isn't modelled explicitly, but contributing to a pension is effectively a ~25% boost for basic-rate
+      taxpayers (HMRC tops up your contribution).</p>
+  </section>
+
+  <!-- TAB 3: Drawdown simulator -->
+  <section id="tab-drawdown" class="panel">
+    <div class="panel-head">
+      <h2>Drawdown simulator</h2>
+    </div>
+    <div class="grid-2">
+      <div class="field"><label for="d-pot">Starting pot (£)</label><input type="number" id="d-pot" value="500000" step="10000" onchange="renderDrawdown()"></div>
+      <div class="field"><label for="d-age">Retirement age</label><input type="number" id="d-age" value="65" min="55" max="75" onchange="renderDrawdown()"></div>
+      <div class="field"><label for="d-withdraw">Annual withdrawal (£)</label><input type="number" id="d-withdraw" value="30000" step="1000" onchange="renderDrawdown()"></div>
+      <div class="field"><label for="d-state">Include state pension from 67?</label>
+        <select id="d-state" onchange="renderDrawdown()"><option value="1">Yes</option><option value="0">No</option></select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="d-growth">Investment growth in retirement (%/yr, real)</label>
+      <div class="slider-row">
+        <input type="range" id="d-growth" min="0" max="7" step="0.5" value="3.5" oninput="document.getElementById('d-growth-val').textContent=this.value+'%';renderDrawdown()">
+        <span class="slider-val" id="d-growth-val">3.5%</span>
+      </div>
+    </div>
+    <div class="metric-grid" id="drawdown-metrics"></div>
+    <div class="chart-wrap"><canvas id="drawdown-chart"></canvas></div>
+    <p class="assumption-note">Chart shows pot value each year until depleted or age 100. State pension reduces
+      withdrawals from the pot from age 67.</p>
+  </section>
+
+  <!-- TAB 4: Annuity vs drawdown -->
+  <section id="tab-compare" class="panel">
+    <div class="panel-head">
+      <h2>Annuity vs drawdown</h2>
+    </div>
+    <div class="grid-3">
+      <div class="field"><label for="c-pot">Pot size (£)</label><input type="number" id="c-pot" value="500000" step="10000" onchange="renderCompare()"></div>
+      <div class="field"><label for="c-age">Retirement age</label><input type="number" id="c-age" value="65" min="55" max="75" onchange="renderCompare()"></div>
+      <div class="field"><label for="c-income">Annual income needed (£)</label><input type="number" id="c-income" value="30000" step="1000" onchange="renderCompare()"></div>
+    </div>
+    <div id="compare-metrics" class="metric-grid"></div>
+    <div class="compare-grid">
+      <div class="compare-card">
+        <h4>Drawdown</h4>
+        <div class="pros-cons">
+          <div class="pro">Pot stays invested, can grow</div>
+          <div class="pro">Flexible — change withdrawals</div>
+          <div class="pro">Unused pot passes to heirs</div>
+          <div class="pro">Can top up with part-time work</div>
+          <div class="con">Pot can run out if you live long</div>
+          <div class="con">Investment risk — pot can fall</div>
+          <div class="con">Requires active management</div>
+        </div>
+      </div>
+      <div class="compare-card">
+        <h4>Annuity</h4>
+        <div class="pros-cons">
+          <div class="pro">Guaranteed income for life</div>
+          <div class="pro">No investment risk</div>
+          <div class="pro">Simple — set and forget</div>
+          <div class="pro">Can include partner's pension</div>
+          <div class="con">No flexibility once purchased</div>
+          <div class="con">Nothing left for heirs</div>
+          <div class="con">Poor value if you die early</div>
+          <div class="con">Fixed income erodes with inflation</div>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="sw" style="color:var(--accent)"></i>Total received — annuity</span>
+      <span><i class="sw dash" style="color:var(--warn)"></i>Cumulative drawdown cost</span>
+    </div>
+    <div class="chart-wrap" style="height:240px"><canvas id="compare-chart"></canvas></div>
+    <p id="compare-note" class="assumption-note"></p>
+  </section>
+
+  <!-- TAB 5: Income matrix -->
+  <section id="tab-income" class="panel">
+    <div class="panel-head">
+      <h2>Annual income from different pot sizes</h2>
+    </div>
+    <div class="grid-2">
+      <div class="field">
+        <label for="state-pension">Include state pension from age 67?</label>
+        <select id="state-pension" onchange="renderMatrix()">
+          <option value="1">Yes — add ~£11,502/yr</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+    </div>
+    <div class="tablewrap" id="matrix-table"></div>
+    <p class="assumption-note">Income shown as sustainable annual withdrawal using the 4% drawdown rule. Annuity figures
+      use estimated UK market rates (see Assumptions tab). State pension added from age 67 where applicable. All figures
+      gross (before tax).</p>
+  </section>
+
+  <!-- TAB 6: Assumptions -->
+  <section id="tab-assumptions" class="panel">
+    <div class="panel-head">
+      <h2>Assumptions &amp; methodology</h2>
+    </div>
+    <ul class="rules">
+      <li><b>Drawdown income.</b> Uses the 4% rule, an evidence-based guideline suggesting you can withdraw 4% of your
+        pot per year with a high probability of not running out over a 30-year retirement.
+      </li>
+      <li><b>Annuity rates.</b> Estimated 2025 rates for a single-life, level (non-inflation-linked) annuity, shown below.
+        Inflation-linked annuities start ~30–40% lower. Enhanced rates are available for smokers or those with health
+        conditions.
+      </li>
+    </ul>
+    <div class="tablewrap rates">
+      <table>
+        <thead><tr><th>Retirement age</th><th class="r">Rate (%/yr of pot)</th></tr></thead>
+        <tbody>
+          <tr><td>55</td><td class="num">4.2%</td></tr>
+          <tr><td>60</td><td class="num">5.0%</td></tr>
+          <tr><td>65</td><td class="num">6.2%</td></tr>
+          <tr><td>70</td><td class="num">7.8%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul class="rules">
+      <li><b>State pension.</b> The full new State Pension is £11,502/yr (2024/25). Qualifying age is 67. Requires 35
+        qualifying NI years.
+      </li>
+      <li><b>Tax.</b> All figures are gross (before tax). 25% of your pot can typically be taken tax-free. Withdrawals
+        above £12,570/yr are subject to income tax. Consult an IFA for personalised tax planning.
+      </li>
+      <li><b>Inflation.</b> All figures are in today's money (real terms). Growth rates are after inflation.</li>
+      <li><b>Retirement budget.</b> Default amounts on the Budget tab are typical annual figures for a retired household
+        in the UK, in today's money. They're a starting point only, so edit every line to match your plans. Items marked
+        essential (housing, bills, groceries, transport, health) are the floor you can fall back to; everything else
+        (holidays, leisure, eating out, gifts) is discretionary. The "pot needed" figure uses the 4% drawdown rule
+        against your total budget.
+      </li>
+      <li>Your inputs are saved in the page address. Bookmark or copy the link to keep your scenario, or send it to
+        someone to share it.
+      </li>
+      <li>This tool is for illustrative purposes only and does not constitute financial advice. Consult a regulated IFA
+        before making pension decisions.
+      </li>
+    </ul>
+  </section>
 </div>
 
 <script>
@@ -280,6 +845,23 @@ function nearestRate(age){
 
 let ddChart=null,cmpChart=null,saveChart=null;
 
+// Charts read their colours from the CSS tokens so they follow light/dark mode
+const cssVar=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function alpha(hex,a){const n=parseInt(hex.slice(1),16);return`rgba(${n>>16},${(n>>8)&255},${n&255},${a})`}
+function chartTheme(){
+  Chart.defaults.color=cssVar('--muted');
+  Chart.defaults.borderColor=cssVar('--line');
+  Chart.defaults.font.family=cssVar('--f-body');
+}
+function chartOptions(yTitle,extraX){
+  return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{
+    x:{title:{display:true,text:'Age',font:{size:12}},grid:{display:false},...extraX},
+    y:{title:{display:true,text:yTitle,font:{size:12}},ticks:{callback:v=>'£'+Math.round(v/1000)+'k',font:{family:cssVar('--f-mono'),size:11}}}}};
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{
+  const a=document.querySelector('.panel.active');if(a)showTab(a.id.replace('tab-',''));
+});
+
 function showTab(name){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -295,12 +877,12 @@ function showTab(name){
 function renderMatrix(){
   const sp=parseInt(document.getElementById('state-pension').value);
   let html='<table><thead><tr><th>Pot size</th>';
-  RET_AGES.forEach(a=>html+=`<th>Age ${a}</th>`);
+  RET_AGES.forEach(a=>html+=`<th class="r">Age ${a}</th>`);
   html+='</tr></thead><tbody>';
   ['Drawdown (4% rule)','Annuity (level)'].forEach((label,idx)=>{
-    html+=`<tr><td colspan="${RET_AGES.length+1}" style="padding:6px 10px 4px;font-size:12px;font-weight:500;color:var(--color-text-secondary)">${label}</td></tr>`;
+    html+=`<tr class="group"><td colspan="${RET_AGES.length+1}">${label}</td></tr>`;
     POT_SIZES.forEach(pot=>{
-      html+=`<tr><td style="font-weight:500">${fmtK(pot)}</td>`;
+      html+=`<tr><td class="mono" style="font-weight:500">${fmtK(pot)}</td>`;
       RET_AGES.forEach(age=>{
         const inc=idx===0?pot*DRAWDOWN_RATE:pot*nearestRate(age);
         const sp_add=sp&&age>=67?STATE_PENSION:0;
@@ -337,16 +919,18 @@ function renderDrawdown(){
   m+=`<div class="metric"><div class="metric-label">Starting pot</div><div class="metric-val">${fmt(pot)}</div></div>`;
   m+=`<div class="metric"><div class="metric-label">Annual withdrawal</div><div class="metric-val">${fmt(withdraw)}</div></div>`;
   if(sp)m+=`<div class="metric"><div class="metric-label">State pension (from 67)</div><div class="metric-val">${fmt(STATE_PENSION)}</div><div class="metric-sub">reduces pot drawdown</div></div>`;
-  if(depletedAge)m+=`<div class="metric"><div class="metric-label">Pot runs out</div><div class="metric-val" style="color:#a32d2d">Age ${depletedAge}</div></div>`;
-  else m+=`<div class="metric"><div class="metric-label">Pot survives to</div><div class="metric-val" style="color:#3b6d11">Age 100+</div></div>`;
+  if(depletedAge)m+=`<div class="metric"><div class="metric-label">Pot runs out</div><div class="metric-val" style="color:var(--bad)">Age ${depletedAge}</div></div>`;
+  else m+=`<div class="metric"><div class="metric-label">Pot survives to</div><div class="metric-val" style="color:var(--good)">Age 100+</div></div>`;
   m+=`<div class="metric"><div class="metric-label">Withdrawal rate</div><div class="metric-val">${((withdraw/pot)*100).toFixed(1)}%</div><div class="metric-sub">${withdraw/pot<=0.04?'sustainable':'may deplete early'}</div></div>`;
   document.getElementById('drawdown-metrics').innerHTML=m;
 
   if(ddChart)ddChart.destroy();
+  chartTheme();
+  const accent=cssVar('--accent');
   ddChart=new Chart(document.getElementById('drawdown-chart').getContext('2d'),{
     type:'line',
-    data:{labels:ages,datasets:[{label:'Pot value',data:vals,borderColor:'#185fa5',backgroundColor:'rgba(55,138,221,0.08)',fill:true,tension:0.3,pointRadius:0,borderWidth:2}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'Age',font:{size:12}},ticks:{maxTicksLimit:12}},y:{title:{display:true,text:'Pot value',font:{size:12}},ticks:{callback:v=>'£'+Math.round(v/1000)+'k'}}}}
+    data:{labels:ages,datasets:[{label:'Pot value',data:vals,borderColor:accent,backgroundColor:alpha(accent,0.12),fill:true,tension:0.3,pointRadius:0,borderWidth:2}]},
+    options:chartOptions('Pot value',{ticks:{maxTicksLimit:12}})
   });
 }
 
@@ -371,13 +955,14 @@ function renderCompare(){
   const drawdownTotal=ages.map(a=>{let v=pot;for(let i=0;i<(a-age);i++)v=v*1.035-income;return pot-Math.max(0,v);});
 
   if(cmpChart)cmpChart.destroy();
+  chartTheme();
   cmpChart=new Chart(document.getElementById('compare-chart').getContext('2d'),{
     type:'line',
     data:{labels:ages,datasets:[
-      {label:'Annuity total',data:annuityTotal,borderColor:'#1d9e75',backgroundColor:'transparent',tension:0.3,pointRadius:0,borderWidth:2},
-      {label:'Drawdown cost',data:drawdownTotal,borderColor:'#185fa5',backgroundColor:'transparent',tension:0.3,pointRadius:0,borderWidth:2,borderDash:[5,3]}
+      {label:'Annuity total',data:annuityTotal,borderColor:cssVar('--accent'),backgroundColor:'transparent',tension:0.3,pointRadius:0,borderWidth:2},
+      {label:'Drawdown cost',data:drawdownTotal,borderColor:cssVar('--warn'),backgroundColor:'transparent',tension:0.3,pointRadius:0,borderWidth:2,borderDash:[5,3]}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'Age',font:{size:12}}},y:{title:{display:true,text:'Cumulative £',font:{size:12}},ticks:{callback:v=>'£'+Math.round(v/1000)+'k'}}}}
+    options:chartOptions('Cumulative £')
   });
   document.getElementById('compare-note').textContent=`Annuity wins if you live past age ${age+breakeven}. Drawdown wins if you die earlier or your pot grows well. Drawdown income shown at ${((income/pot)*100).toFixed(1)}% withdrawal rate.`;
 }
@@ -426,7 +1011,7 @@ function renderSave(){
   resultHtml+=`<div class="metric-grid">
     <div class="metric"><div class="metric-label">Target pot needed</div><div class="metric-val">${fmt(targetPot)}</div><div class="metric-sub">${strategy==='drawdown'?'4% drawdown':'annuity'} to yield ${fmt(incomeFromPot)}/yr</div></div>
     <div class="metric"><div class="metric-label">Your pot today grows to</div><div class="metric-val">${fmt(existingPotValue)}</div><div class="metric-sub">at ${(growth*100).toFixed(1)}% real growth over ${years} yrs</div></div>
-    <div class="metric"><div class="metric-label">Monthly saving needed</div><div class="metric-val" style="color:${monthlyNeeded<0?'#3b6d11':'#185fa5'}">${monthlyNeeded<=0?'None':fmt(monthlyNeeded)+'/mo'}</div><div class="metric-sub">on top of existing pot growth</div></div>
+    <div class="metric"><div class="metric-label">Monthly saving needed</div><div class="metric-val" style="color:${monthlyNeeded<=0?'var(--good)':'var(--accent)'}">${monthlyNeeded<=0?'None':fmt(monthlyNeeded)+'/mo'}</div><div class="metric-sub">on top of existing pot growth</div></div>
     <div class="metric"><div class="metric-label">Years to retirement</div><div class="metric-val">${years}</div></div>
   </div>`;
 
@@ -452,20 +1037,22 @@ function renderSave(){
   const targetLine=chartAges.map(()=>Math.round(targetPot));
 
   if(saveChart)saveChart.destroy();
+  chartTheme();
+  const accent=cssVar('--accent');
   saveChart=new Chart(document.getElementById('save-chart').getContext('2d'),{
     type:'line',
     data:{labels:chartAges,datasets:[
-      {label:'Projected pot',data:totalLine,borderColor:'#185fa5',backgroundColor:'rgba(55,138,221,0.07)',fill:true,tension:0.3,pointRadius:0,borderWidth:2},
-      {label:'Existing pot only',data:existingLine,borderColor:'#888780',backgroundColor:'transparent',tension:0.3,pointRadius:0,borderWidth:1.5,borderDash:[4,3]},
-      {label:'Target',data:targetLine,borderColor:'#1d9e75',backgroundColor:'transparent',tension:0,pointRadius:0,borderWidth:1.5,borderDash:[2,4]}
+      {label:'Projected pot',data:totalLine,borderColor:accent,backgroundColor:alpha(accent,0.1),fill:true,tension:0.3,pointRadius:0,borderWidth:2},
+      {label:'Existing pot only',data:existingLine,borderColor:cssVar('--muted'),backgroundColor:'transparent',tension:0.3,pointRadius:0,borderWidth:1.5,borderDash:[4,3]},
+      {label:'Target',data:targetLine,borderColor:cssVar('--warn'),backgroundColor:'transparent',tension:0,pointRadius:0,borderWidth:1.5,borderDash:[2,4]}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:'Age',font:{size:12}}},y:{title:{display:true,text:'Pot value',font:{size:12}},ticks:{callback:v=>'£'+Math.round(v/1000)+'k'}}}}
+    options:chartOptions('Pot value')
   });
 
-  const legColors=['#185fa5','#888780','#1d9e75'];
-  const legLabels=['Projected pot (with contributions)','Existing pot only (no new saving)','Target'];
-  const leg=legColors.map((c,i)=>`<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:${c};display:inline-block"></span>${legLabels[i]}</span>`).join('');
-  document.getElementById('save-milestones').innerHTML=`<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--color-text-secondary);margin-bottom:.5rem">${leg}</div>`;
+  document.getElementById('save-milestones').innerHTML=`<div class="legend">
+    <span><i class="sw" style="color:var(--accent)"></i>Projected pot (with contributions)</span>
+    <span><i class="sw dash" style="color:var(--muted)"></i>Existing pot only (no new saving)</span>
+    <span><i class="sw dot" style="color:var(--warn)"></i>Target</span></div>`;
 }
 
 // ---- Budget tab ----
@@ -507,12 +1094,12 @@ function renderBudget(){
   const catTotals={};
   BUDGET_ITEMS.forEach(it=>{catTotals[it.cat]=(catTotals[it.cat]||0)+budgetValue(it.id,it.val);});
 
-  let html='<table><thead><tr><th>Category / item</th><th style="text-align:right">£ per year</th></tr></thead><tbody>';
+  let html='<table><thead><tr><th>Category / item</th><th class="r">£ per year</th></tr></thead><tbody>';
   let lastCat=null;
   BUDGET_ITEMS.forEach(it=>{
     if(it.cat!==lastCat){
       lastCat=it.cat;
-      html+=`<tr><td colspan="2" style="padding:6px 10px 4px;font-size:12px;font-weight:500;color:var(--color-text-secondary)">${it.cat}<span style="float:right;font-size:12px;font-variant-numeric:tabular-nums">${fmt(catTotals[it.cat])}</span></td></tr>`;
+      html+=`<tr class="group"><td colspan="2">${it.cat}<span class="group-total">${fmt(catTotals[it.cat])}</span></td></tr>`;
     }
     html+=`<tr><td>${it.label}${it.ess?'<span class="badge badge-b">essential</span>':''}</td><td class="num"><input type="number" class="budget-input" id="${it.id}" value="${budgetValue(it.id,it.val)}" min="0" step="100" onchange="renderBudget()"></td></tr>`;
   });
@@ -526,7 +1113,7 @@ function renderBudget(){
   const copyVal=taxMode?grossUpForTax(total):total;
 
   let m='';
-  m+=`<div class="metric-grid" style="margin-bottom:1.25rem">
+  m+=`<div class="metric-grid">
     <div class="metric"><div class="metric-label">Total budget</div><div class="metric-val">${fmt(total)}/yr</div><div class="metric-sub">${fmt(Math.round(total/12))}/mo · ${fmt(Math.round(total/52))}/wk</div></div>
     <div class="metric"><div class="metric-label">Essential floor</div><div class="metric-val">${fmt(ess)}/yr</div><div class="metric-sub">if money gets tight</div></div>
     <div class="metric"><div class="metric-label">Discretionary</div><div class="metric-val">${fmt(disc)}/yr</div><div class="metric-sub">holidays, leisure, gifts</div></div>
