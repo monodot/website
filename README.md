@@ -4,8 +4,13 @@ A repository for my personal blog.
 
 To install:
 
-    git clone <URL>
-    cd monodot-co-uk
-    bundle install --path vendor/bundle
-    bundle exec jekyll serve
+```shell
+bundle config set --local path vendor/bundle
+bundle install
+```
 
+Then serve:
+
+```sh
+bundle exec jekyll serve --livereload
+```
