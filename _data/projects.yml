@@ -73,3 +73,10 @@ projects:
       £100k. Built with Claude, and completely private."
     url: /projects/income-tax-calculator/
     link_text: Open the Income Tax Calculator
+  - title: Collage Maker
+    section: Web Tools
+    description: "This is the tool I use to create some of the images on this site.
+      Paste an image, add shapes, tweak grain and then export with compression.
+      Built with Claude, completely private."
+    url: /projects/collage-maker/
+    link_text: Open Collage Maker
