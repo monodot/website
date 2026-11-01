@@ -3,9 +3,14 @@ layout: default
 ---
 
 <div class="prose">
-    <article itemtype="http://schema.org/CreativeWork">
+    <article itemscope itemtype="http://schema.org/CreativeWork">
         <header>
-            <h1>{{ page.title | markdownify | remove: "<p>" | remove: "</p>" }}</h1>
+            <h1 itemprop="headline">{{ page.title | markdownify | remove: "<p>" | remove: "</p>" }}</h1>
+            {%- if page.image %}
+            <figure class="lead-image">
+                <img itemprop="image" src="{{ page.image.path | default: page.image | relative_url }}" alt="{{ page.image_alt | default: page.image.alt | escape }}">
+            </figure>
+            {%- endif %}
         </header>
         {{ content }}
     </article>

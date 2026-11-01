@@ -56,9 +56,16 @@
 
     > header {
       border-bottom: none;
+      margin-top: calc(var(--pico-block-spacing-vertical)*-1);
+      margin-bottom: calc(var(--pico-block-spacing-vertical)*3);
       margin-left: 0;
       margin-right: 0;
+      padding: 0;
       background: none;
+
+      > h1 {
+        margin-bottom: calc(var(--pico-typography-spacing-vertical) *2);
+      }
     }
   }
 }
