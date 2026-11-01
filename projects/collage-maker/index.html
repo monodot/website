@@ -1024,7 +1024,18 @@ $("xpSave").onclick = async () => {
   const f = FORMATS.find(x => x.id===xs.fmt), blob = xs.blob;
   const name = (($("fname").value||"collage").trim().replace(/\.(webp|png|jpe?g)$/i,"").replace(/[^\w\-. ]+/g,"-") || "collage") + "." + f.ext;
   const dl = await getDownloads();
-  if(!dl){ showFallback(blob, `Saving isn't available in this view. Right-click the image (or long-press on a phone) and choose "Save Image As…", then name it ${name}.`); return; }
+  if(!dl){
+    // Standalone page: a normal browser download via a temporary link
+    try {
+      const url = URL.createObjectURL(blob), a = el("a",{href:url,download:name,style:"display:none"});
+      document.body.append(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+      say(`Downloaded ${name} · ${kb(blob.size)}`); status(`Downloaded ${name} · ${kb(blob.size)}`);
+    } catch(err){
+      showFallback(blob, `Downloading didn't work here. Right-click the image (or long-press on a phone) and choose "Save Image As…", then name it ${name}.`);
+    }
+    return;
+  }
   try {
     await dl.save({ filename:name, data:blob });
     say(`Saved ${name} · ${kb(blob.size)}`); status(`Saved ${name} · ${kb(blob.size)}`);
