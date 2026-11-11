@@ -1,0 +1,279 @@
+<!doctype html>
+<!--
+  Data Rate Converter
+  Copyright (c) 2026 Tom Donohue
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+  SOFTWARE.
+-->
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Data Rate Converter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}
+[hidden]:not([hidden=until-found i]){display:none!important}
+</style>
+<style>
+/* Layout: single column — header, converter (per second ⇄ per day / per month), equivalents strip, rules */
+:root{
+  --bg:#f3f5f3; --surface:#ffffff; --ink:#18211d; --muted:#5d6b64; --line:#d8dfdb;
+  --accent:#1d5e4b; --accent-soft:#e3efe9; --warn:#9a5b00; --warn-soft:#fbf0dc;
+  --f-display:"Schibsted Grotesk",system-ui,sans-serif; --f-body:"Schibsted Grotesk",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1a211e; --ink:#e4ebe7; --muted:#97a69f; --line:#2d3833;
+  --accent:#6cc3a3; --accent-soft:#1f322b; --warn:#e7b25c; --warn-soft:#352a17; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1a211e; --ink:#e4ebe7; --muted:#97a69f; --line:#2d3833;
+  --accent:#6cc3a3; --accent-soft:#1f322b; --warn:#e7b25c; --warn-soft:#352a17; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+.wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font-family:var(--f-display);font-weight:700;font-size:28px;letter-spacing:-.01em;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-size:19px;margin:0;font-weight:600;text-wrap:balance}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0;font-weight:600}
+p{margin:0;max-width:68ch}
+.lede{color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+label{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+input[type=number],select{font-family:var(--f-mono);font-size:14px;padding:7px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);width:100%}
+select{font-family:var(--f-body);width:auto}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button{font:inherit;font-weight:600;font-size:14px;padding:8px 16px;border-radius:4px;border:1px solid var(--accent);background:var(--accent);color:var(--surface);cursor:pointer}
+button.ghost{background:transparent;color:var(--accent)}
+.head-row{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 20px;align-items:center}
+.head-row .ctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+/* converter */
+.conv{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,2fr);gap:16px 20px;align-items:stretch}
+.side{display:grid;gap:16px}
+.side.right{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.eq{display:flex;align-items:center;justify-content:center;color:var(--muted);font-family:var(--f-mono);font-size:22px}
+@media (max-width:760px){.conv{grid-template-columns:1fr}.eq{transform:rotate(90deg);height:20px}}
+.field{border:1px solid var(--line);border-radius:6px;padding:14px;display:flex;flex-direction:column;gap:8px;background:var(--surface);transition:border-color .15s,background .15s}
+.field.src{border-color:var(--accent);background:var(--accent-soft)}
+@media (prefers-reduced-motion:reduce){.field{transition:none}}
+.field .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.field .tag{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);visibility:hidden}
+.field.src .tag{visibility:visible}
+.field .in{display:flex;gap:6px}
+.field .in input{font-size:20px;padding:9px 12px;min-width:0;flex:1}
+.field .in select{font-family:var(--f-mono);font-size:14px;flex:none}
+.field .alt{font-family:var(--f-mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;min-height:1.5em}
+
+/* equivalents strip */
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));border:1px solid var(--line);border-radius:6px;background:var(--surface);overflow:hidden}
+.summary div{padding:14px 18px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:2px;margin-bottom:-1px}
+.summary .v{font-family:var(--f-mono);font-size:20px;font-weight:500;font-variant-numeric:tabular-nums}
+.summary .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.summary .s{font-size:12.5px;color:var(--muted);font-family:var(--f-mono)}
+.summary .lead .v{color:var(--accent)}
+ul.rules{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:8px;max-width:72ch;color:var(--muted);font-size:14px}
+ul.rules b{color:var(--ink);font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:8px">
+    <h1>Data Rate Converter</h1>
+    <p class="lede">Convert a transfer rate per second into how much data that adds up to in a day or a month, or go the other way. Type into any box and the others follow. Results are shown in whichever unit reads best.</p>
+  </header>
+
+  <section class="panel" aria-label="Converter">
+    <div class="head-row">
+      <h3>Convert</h3>
+      <div class="ctl">
+        <label style="flex-direction:row;align-items:center;gap:8px">Units
+          <select id="base">
+            <option value="1000">Decimal (1 GB = 1000 MB)</option>
+            <option value="1024">Binary (1 GiB = 1024 MiB)</option>
+          </select>
+        </label>
+        <button id="reset" class="ghost" type="button">Reset to example</button>
+      </div>
+    </div>
+
+    <div class="conv">
+      <div class="side">
+        <div class="field" data-k="sec">
+          <div class="top"><label for="v-sec">Per second</label><span class="tag">You entered</span></div>
+          <div class="in"><input type="number" id="v-sec" min="0" step="any" inputmode="decimal"><select id="u-sec" aria-label="Per-second unit"></select></div>
+          <div class="alt" id="a-sec"></div>
+        </div>
+      </div>
+      <div class="eq" aria-hidden="true">⇄</div>
+      <div class="side right">
+        <div class="field" data-k="day">
+          <div class="top"><label for="v-day">Per day</label><span class="tag">You entered</span></div>
+          <div class="in"><input type="number" id="v-day" min="0" step="any" inputmode="decimal"><select id="u-day" aria-label="Per-day unit"></select></div>
+          <div class="alt" id="a-day"></div>
+        </div>
+        <div class="field" data-k="month">
+          <div class="top"><label for="v-month">Per month</label><span class="tag">You entered</span></div>
+          <div class="in"><input type="number" id="v-month" min="0" step="any" inputmode="decimal"><select id="u-month" aria-label="Per-month unit"></select></div>
+          <div class="alt" id="a-month"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="summary" class="summary" aria-live="polite"></section>
+
+  <section class="panel">
+    <h3>How it's worked out</h3>
+    <ul class="rules">
+      <li><b>A day</b> is 86,400 seconds (24 × 60 × 60).</li>
+      <li><b>A month</b> is an average month: 365.25 ÷ 12 = 30.4375 days, or 2,629,800 seconds. A 30-day month is about 1.4% less; a 31-day month about 1.8% more.</li>
+      <li><b>Decimal units</b> (KB, MB, GB, TB, PB) step up by 1000. This is what network speeds, ISPs, cloud providers and drive makers use.</li>
+      <li><b>Binary units</b> (KiB, MiB, GiB, TiB, PiB) step up by 1024. Operating systems often show file sizes this way, sometimes with the decimal labels.</li>
+      <li><b>Bytes, not bits.</b> Everything here is in bytes. Link speeds quoted in Mbps or Gbps are bits: divide by 8 to get MB/s.</li>
+      <li>The rate is assumed to be sustained the whole time, with no gaps or protocol overhead.</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+const SEC={sec:1, day:86400, month:86400*365.25/12};
+const PREFIX=["","K","M","G","T","P"];
+const EXAMPLE={src:"sec",bytes:10e6,base:1000,units:{sec:2,day:3,month:4}};
+const KEYS=["sec","day","month"];
+const $=id=>document.getElementById(id);
+
+let state=load()||structuredClone(EXAMPLE);
+
+function unitName(i,base){ return i===0?"B":PREFIX[i]+(base===1024?"iB":"B"); }
+function suffix(k){ return k==="sec"?"/s":k==="day"?"/day":"/month"; }
+// Pick the largest unit where the value is still at least 1
+function bestUnit(bytes,base){
+  if(!(bytes>0)) return 2;
+  let i=0; while(i<PREFIX.length-1 && bytes>=Math.pow(base,i+1)) i++;
+  return i;
+}
+// Trim to a sensible number of significant figures without going to exponent notation
+function nice(n,sig=4){
+  if(!isFinite(n)) return "";
+  if(n===0) return "0";
+  const mag=Math.floor(Math.log10(Math.abs(n)));
+  const dp=Math.max(0,Math.min(10,sig-1-mag));
+  return n.toLocaleString("en-GB",{maximumFractionDigits:dp});
+}
+function inputVal(n){
+  if(!isFinite(n)) return "";
+  const mag=n===0?0:Math.floor(Math.log10(Math.abs(n)));
+  const dp=Math.max(0,Math.min(10,6-1-mag));
+  return String(parseFloat(n.toFixed(dp)));
+}
+function fmtBytes(bytes,base,k){
+  const i=bestUnit(bytes,base);
+  return nice(bytes/Math.pow(base,i))+" "+unitName(i,base)+suffix(k);
+}
+
+function fillSelects(){
+  KEYS.forEach(k=>{
+    const sel=$("u-"+k);
+    sel.innerHTML=PREFIX.map((_,i)=>`<option value="${i}">${unitName(i,state.base)}${suffix(k)}</option>`).join("");
+    sel.value=state.units[k];
+  });
+}
+
+// bytes per second
+function rate(){ return state.bytes/SEC[state.src]; }
+
+function render(skipInput){
+  const r=rate(), base=state.base;
+  KEYS.forEach(k=>{
+    const total=r*SEC[k];
+    const field=document.querySelector(`.field[data-k="${k}"]`);
+    field.classList.toggle("src",k===state.src);
+    // computed fields snap to the unit that reads best; the source keeps what the user chose
+    if(k!==state.src) state.units[k]=bestUnit(total,base);
+    $("u-"+k).value=state.units[k];
+    if(k!==skipInput){
+      $("v-"+k).value=state.bytes>0||k!==state.src?inputVal(total/Math.pow(base,state.units[k])):"";
+    }
+    // secondary line: the same figure in the neighbouring units
+    const i=state.units[k], alts=[];
+    if(total>0){
+      if(i>0) alts.push(nice(total/Math.pow(base,i-1))+" "+unitName(i-1,base));
+      if(i<PREFIX.length-1) alts.push(nice(total/Math.pow(base,i+1))+" "+unitName(i+1,base));
+    }
+    $("a-"+k).textContent=alts.length?"= "+alts.join(" · "):"";
+  });
+
+  const cells=[
+    ["Per second",1,"sec"],["Per hour",3600,null],["Per day",SEC.day,"day"],
+    ["Per month",SEC.month,"month"],["Per year",SEC.day*365.25,null]
+  ];
+  $("summary").innerHTML=cells.map(([name,secs,k])=>{
+    const total=r*secs, i=bestUnit(total,base);
+    return `<div class="${k===state.src?"lead":""}"><span class="k">${name}</span><span class="v">${nice(total/Math.pow(base,i))} ${unitName(i,base)}</span><span class="s">${total>0?Math.round(total).toLocaleString("en-GB")+" bytes":"—"}</span></div>`;
+  }).join("");
+  save();
+}
+
+function onValue(k){
+  const v=parseFloat($("v-"+k).value);
+  state.src=k;
+  state.bytes=isFinite(v)&&v>0?v*Math.pow(state.base,state.units[k]):0;
+  render(k);
+}
+function onUnit(k){
+  // re-express the same quantity in the new unit rather than changing the rate
+  state.units[k]=parseInt($("u-"+k).value,10);
+  if(k===state.src){ render(); return; }
+  const total=rate()*SEC[k];
+  state.src=k; state.bytes=total;
+  render();
+}
+
+function save(){ try{localStorage.setItem("dataRateConverter",JSON.stringify(state));}catch(e){} }
+function load(){
+  try{
+    const s=JSON.parse(localStorage.getItem("dataRateConverter"));
+    if(s&&KEYS.includes(s.src)&&isFinite(s.bytes)&&(s.base===1000||s.base===1024)&&s.units) return s;
+  }catch(e){}
+  return null;
+}
+
+KEYS.forEach(k=>{
+  $("v-"+k).addEventListener("input",()=>onValue(k));
+  $("u-"+k).addEventListener("change",()=>onUnit(k));
+});
+$("base").addEventListener("change",()=>{
+  // keep the number the user typed, reinterpret it in the new unit system
+  const v=parseFloat($("v-"+state.src).value);
+  state.base=parseInt($("base").value,10);
+  state.bytes=isFinite(v)&&v>0?v*Math.pow(state.base,state.units[state.src]):0;
+  fillSelects(); render();
+});
+$("reset").addEventListener("click",()=>{ state=structuredClone(EXAMPLE); $("base").value=state.base; fillSelects(); render(); });
+
+$("base").value=state.base;
+fillSelects();
+render();
+</script>
+</body>
+</html>

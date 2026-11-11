@@ -79,3 +79,10 @@ projects:
       Built with Claude, completely private."
     url: /projects/collage-maker/
     link_text: Open Collage Maker
+  - title: Data Rate Converter
+    section: Web Tools
+    description: "Convert a data transfer rate per second (e.g. MB/s) into how much
+      that adds up to per day or per month, or work backwards from a monthly
+      allowance to a per-second rate. Built with Claude, completely private."
+    url: /projects/data-rate-converter/
+    link_text: Open the Data Rate Converter
